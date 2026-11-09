@@ -10,7 +10,7 @@ use App\Shared\UI\Controller\ApiInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/auth')]
@@ -19,7 +19,7 @@ class InscriptionPublicController extends ApiInterface
 {
     /** Étape 1 : e-mail -> lien + jeton par e-mail. Réponse toujours identique (pas d'énumération de comptes). */
     #[Route('/inscription/demarrer', name: 'api_auth_inscription_demarrer', methods: ['POST'])]
-    public function demarrer(Request $request, DemarrerInscriptionUseCase $useCase, RateLimiterFactory $inscriptionLimiter): JsonResponse
+    public function demarrer(Request $request, DemarrerInscriptionUseCase $useCase, RateLimiterFactoryInterface $inscriptionLimiter): JsonResponse
     {
         if (!$inscriptionLimiter->create($request->getClientIp() ?? 'anon')->consume()->isAccepted()) {
             return $this->errorResponse('Trop de tentatives, réessayez dans quelques minutes.', 429);
@@ -56,7 +56,7 @@ class InscriptionPublicController extends ApiInterface
         new OA\Property(property: 'canal', type: 'string'), new OA\Property(property: 'reference', type: 'string'),
         new OA\Property(property: 'justificatif', type: 'string', format: 'binary'),
     ])))]
-    public function inscription(Request $request, SoumettreInscriptionUseCase $useCase, JwtService $jwt, RateLimiterFactory $inscriptionLimiter): JsonResponse
+    public function inscription(Request $request, SoumettreInscriptionUseCase $useCase, JwtService $jwt, RateLimiterFactoryInterface $inscriptionLimiter): JsonResponse
     {
         if (!$inscriptionLimiter->create($request->getClientIp() ?? 'anon')->consume()->isAccepted()) {
             return $this->errorResponse('Trop de tentatives, réessayez dans quelques minutes.', 429);
