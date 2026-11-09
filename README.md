@@ -47,7 +47,7 @@ Dans GitHub (Settings → Secrets → Actions), créer le secret **`ENV_LOCAL`**
 
 ### Données initiales en production
 **Ne jamais lancer `doctrine:fixtures:load` en production** : il efface toute la base et crée un admin au mot de passe connu (`Admin#2027`). Le déploiement exécute à la place `app:seed-colloque` (idempotent : crée le colloque s'il n'existe pas, sans rien effacer ni créer d'utilisateur). Le premier admin se crée à la main, avec un mot de passe solide :
-`php8.4 bin/console app:create-admin email@exemple.com 'MotDePasseSolide' --env=prod`
+`php bin/console app:create-admin email@exemple.com 'MotDePasseSolide' --env=prod`
 
 ### Serveur géré par ISPConfig (cas de forum.instapoint.site)
 - Le projet est **aligné sur PHP 8.2 / Symfony 7.4**, comme Educ360 (Doctrine Bundle 2.19, Migrations Bundle 3.7, ORM 3.6). `composer.json` fixe `config.platform.php = 8.2.35` : les dépendances restent installables sur PHP 8.2 même si un poste de développement est en PHP 8.4. La CI tourne en PHP 8.2.
