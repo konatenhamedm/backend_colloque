@@ -87,6 +87,8 @@ jobs:
 
       - name: Deploy and Update Symfony
         run: |
+          set -o pipefail
+          : > /tmp/deploy_out.txt
           SUCCESS=0
           for i in {1..3}; do
             echo "Tentative de déploiement Backend $i/3..."
@@ -108,7 +110,7 @@ jobs:
               { OWN=\$(stat -c '%U:%G' $TARGET_DIR); [ \"\${OWN%%:*}\" = root ] && OWN=www-data:www-data; true; } && \
               chown -R \"\$OWN\" $TARGET_DIR && \
               chmod -R 775 var \
-            "; then
+            " 2>&1 | tee -a /tmp/deploy_out.txt; then
               SUCCESS=1
               echo "Déploiement Backend réussi !"
               break
@@ -118,6 +120,9 @@ jobs:
             fi
           done
           if [ $SUCCESS -ne 1 ]; then
+            # Les dernières lignes d'erreur sont publiées en annotation (lisible sans ouvrir les journaux).
+            msg=$(tail -n 25 /tmp/deploy_out.txt | grep -v '^{"message"' | tr -d '\r' | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=Détail de l'échec du déploiement::$msg"
             echo "ERREUR : Échec du déploiement SSH Backend après 3 tentatives !"
             exit 1
           fi
