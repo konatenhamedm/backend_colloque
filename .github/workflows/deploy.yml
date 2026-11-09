@@ -60,6 +60,17 @@ jobs:
             echo '✅ Configuration de production valide'
           "
 
+      - name: Vérifier la connexion à la base de données (depuis le serveur)
+        run: |
+          set -o pipefail
+          if ! sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "cd $TARGET_DIR && $PHP_BIN" < .github/scripts/check-db.php > /tmp/dbcheck.txt 2>&1; then
+            cat /tmp/dbcheck.txt
+            msg=$(cat /tmp/dbcheck.txt | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=Connexion à la base impossible::$msg"
+            exit 1
+          fi
+          cat /tmp/dbcheck.txt
+
       - name: Backup Database Before Deploy
         run: |
           echo "🔒 Sauvegarde de la base de données avant déploiement..."
