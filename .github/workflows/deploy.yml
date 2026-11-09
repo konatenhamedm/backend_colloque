@@ -17,8 +17,8 @@ jobs:
     env:
       SSHPASS: ${{ secrets.APP_PASS }}
       TARGET_DIR: /var/www/backforum.instapoint.site/web
-      # Le backend exige PHP >= 8.4. Sur le VPS, PHP 8.4 est installé À CÔTÉ de la 8.2 (utilisée par les autres sites) : on appelle donc explicitement php8.4.
-      PHP_BIN: php8.4
+      # Binaire PHP du serveur (le projet est aligné sur PHP 8.2, comme Educ360 ; mettre php8.3 / php8.4 si le site change de version).
+      PHP_BIN: php
       # Certificats SSL pas encore actifs : HTTP par défaut. Quand ils le sont : variable de dépôt USE_HTTPS=true.
       SCHEME: ${{ vars.USE_HTTPS == 'true' && 'https' || 'http' }}
 
@@ -44,11 +44,11 @@ jobs:
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
             cd $TARGET_DIR || { echo '❌ Dossier $TARGET_DIR introuvable'; exit 1; }
-            command -v $PHP_BIN >/dev/null && $PHP_BIN -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' || { echo '❌ $PHP_BIN (PHP >= 8.4) introuvable sur le serveur : installer php8.4-cli et ses extensions'; exit 1; }
+            command -v $PHP_BIN >/dev/null && $PHP_BIN -r 'exit(PHP_VERSION_ID >= 80200 ? 0 : 1);' || { echo '❌ $PHP_BIN (PHP >= 8.2) introuvable sur le serveur'; exit 1; }
             echo \"✅ PHP : \$($PHP_BIN -r 'echo PHP_VERSION;')\"
             for ext in pdo_pgsql intl gd mbstring zip ctype iconv; do
               pkg=\$ext; [ \"\$ext\" = pdo_pgsql ] && pkg=pgsql
-              $PHP_BIN -m | grep -qix \"\$ext\" || { echo \"❌ Extension PHP manquante pour $PHP_BIN : \$ext  (apt install php8.4-\$pkg)\"; exit 1; }
+              $PHP_BIN -m | grep -qix \"\$ext\" || { echo \"❌ Extension PHP manquante pour $PHP_BIN : \$ext  (apt install php8.2-\$pkg)\"; exit 1; }
             done
             [ -f .env.local ] || { echo '❌ .env.local absent : copiez .env.prod.example et renseignez les valeurs'; exit 1; }
             for k in APP_SECRET JWT_SECRET DATABASE_URL MAILER_DSN FRONT_URL CORS_ALLOW_ORIGIN; do

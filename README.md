@@ -50,7 +50,7 @@ Dans GitHub (Settings → Secrets → Actions), créer le secret **`ENV_LOCAL`**
 `php8.4 bin/console app:create-admin email@exemple.com 'MotDePasseSolide' --env=prod`
 
 ### Serveur géré par ISPConfig (cas de forum.instapoint.site)
-- La version PHP se choisit **dans ISPConfig** (Sites web → le domaine → onglet *Options* → PHP-FPM → version **PHP 8.4**). Ne pas éditer le fichier `.vhost` à la main : ISPConfig le régénère.
-- Si « PHP 8.4 » n'est pas proposé : System → *Additional PHP Versions* → ajouter PHP 8.4 (init script `php8.4-fpm`, dossier php.ini `/etc/php/8.4/fpm`, dossier des pools `/etc/php/8.4/fpm/pool.d`).
+- Le projet est **aligné sur PHP 8.2 / Symfony 7.4**, comme Educ360 (Doctrine Bundle 2.19, Migrations Bundle 3.7, ORM 3.6). `composer.json` fixe `config.platform.php = 8.2.35` : les dépendances restent installables sur PHP 8.2 même si un poste de développement est en PHP 8.4. La CI tourne en PHP 8.2.
+- La version PHP du site se règle dans ISPConfig (Sites web → le domaine → onglet *Options* → PHP-FPM). Ne pas éditer le fichier `.vhost` à la main : ISPConfig le régénère.
 - Le déploiement donne ensuite tout le dossier au propriétaire du site (utilisateur `webN`), sans quoi PHP ne peut pas écrire dans `var/` (cache, logs, fichiers privés).
 - Limite d'envoi : si besoin, renseigner dans le champ *Custom php.ini settings* du site : `upload_max_filesize=12M` et `post_max_size=14M`.
