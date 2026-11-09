@@ -17,6 +17,8 @@ jobs:
     env:
       SSHPASS: ${{ secrets.APP_PASS }}
       TARGET_DIR: /var/www/backforum.instapoint.site/web
+      # Le backend exige PHP >= 8.4. Sur le VPS, PHP 8.4 est installé À CÔTÉ de la 8.2 (utilisée par les autres sites) : on appelle donc explicitement php8.4.
+      PHP_BIN: php8.4
 
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +42,8 @@ jobs:
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
             cd $TARGET_DIR || { echo '❌ Dossier $TARGET_DIR introuvable'; exit 1; }
+            command -v $PHP_BIN >/dev/null && $PHP_BIN -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' || { echo '❌ $PHP_BIN (PHP >= 8.4) introuvable sur le serveur : installer php8.4-cli et ses extensions'; exit 1; }
+            echo \"✅ PHP : \$($PHP_BIN -r 'echo PHP_VERSION;')\"
             [ -f .env.local ] || { echo '❌ .env.local absent : copiez .env.prod.example et renseignez les valeurs'; exit 1; }
             for k in APP_SECRET JWT_SECRET DATABASE_URL MAILER_DSN FRONT_URL CORS_ALLOW_ORIGIN; do
               grep -q \"^\$k=\" .env.local || { echo \"❌ \$k manquant dans .env.local\"; exit 1; }
@@ -87,12 +91,12 @@ jobs:
               git fetch origin production && \
               git reset --hard origin/production && \
               export APP_ENV=prod && \
-              COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --optimize-autoloader && \
-              COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod && \
-              php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod && \
-              php bin/console doctrine:schema:validate --skip-sync --env=prod && \
-              php bin/console cache:clear --env=prod && \
-              php bin/console cache:warmup --env=prod && \
+              COMPOSER_ALLOW_SUPERUSER=1 $PHP_BIN \$(command -v composer) install --no-dev --no-interaction --optimize-autoloader && \
+              COMPOSER_ALLOW_SUPERUSER=1 $PHP_BIN \$(command -v composer) dump-env prod && \
+              $PHP_BIN bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod && \
+              $PHP_BIN bin/console doctrine:schema:validate --skip-sync --env=prod && \
+              $PHP_BIN bin/console cache:clear --env=prod && \
+              $PHP_BIN bin/console cache:warmup --env=prod && \
               mkdir -p var/cache var/log var/data && \
               chmod -R 775 var && \
               (chgrp -R www-data var 2>/dev/null || true) \
