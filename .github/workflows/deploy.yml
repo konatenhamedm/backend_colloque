@@ -46,6 +46,9 @@ jobs:
             cd $TARGET_DIR || { echo '❌ Dossier $TARGET_DIR introuvable'; exit 1; }
             command -v $PHP_BIN >/dev/null && $PHP_BIN -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);' || { echo '❌ $PHP_BIN (PHP >= 8.4) introuvable sur le serveur : installer php8.4-cli et ses extensions'; exit 1; }
             echo \"✅ PHP : \$($PHP_BIN -r 'echo PHP_VERSION;')\"
+            for ext in pdo_pgsql intl gd mbstring zip ctype iconv; do
+              $PHP_BIN -m | grep -qix \"\$ext\" || { echo \"❌ Extension PHP manquante pour $PHP_BIN : \$ext  (apt install php8.4-\$ext)\"; exit 1; }
+            done
             [ -f .env.local ] || { echo '❌ .env.local absent : copiez .env.prod.example et renseignez les valeurs'; exit 1; }
             for k in APP_SECRET JWT_SECRET DATABASE_URL MAILER_DSN FRONT_URL CORS_ALLOW_ORIGIN; do
               grep -q \"^\$k=\" .env.local || { echo \"❌ \$k manquant dans .env.local\"; exit 1; }
