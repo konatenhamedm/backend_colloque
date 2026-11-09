@@ -1,0 +1,8 @@
+{% extends 'email/base.html.twig' %}
+{% block content %}
+<h1 style="margin:0 0 12px;font-size:22px;color:#1b2a6b;">Merci pour votre participation</h1>
+<p style="margin:0 0 8px;">Bonjour {{ inscription.utilisateur.prenom }},</p>
+<p style="margin:0 0 16px;">Votre <strong>attestation de participation</strong> est jointe à cet e-mail (PDF). Vous pouvez l'imprimer. Elle contient un QR code permettant de vérifier son authenticité.</p>
+<p style="margin:0;">Elle reste téléchargeable à tout moment depuis votre espace.</p>
+{% include 'email/_button.html.twig' with { url: frontUrl ~ '/espace', label: 'Accéder à mon espace' } %}
+{% endblock %}

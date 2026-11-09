@@ -1,0 +1,16 @@
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Apache/FastCGI retire parfois l'en-tête Authorization : on le transmet à PHP (indispensable pour le JWT Bearer).
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Tout ce qui n'est pas un fichier existant -> front controller Symfony
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Pas de listing de dossiers
+Options -Indexes

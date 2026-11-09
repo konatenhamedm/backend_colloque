@@ -1,0 +1,52 @@
+security:
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Security\Domain\Entity\Utilisateur
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        home:
+            pattern: ^/$
+            security: false
+        api_doc:
+            pattern: ^/api/doc
+            security: false
+        # Routes publiques (landing, inscription, login, vérification d'attestation)
+        api_public:
+            pattern: ^/api/(public|auth/login|auth/inscription)
+            stateless: true
+            security: false
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            custom_authenticators:
+                - App\Security\Infrastructure\Security\JwtAuthenticator
+            entry_point: App\Security\Infrastructure\Security\JwtAuthenticator
+
+    role_hierarchy:
+        ROLE_COMITE: [ROLE_PARTICIPANT]
+        ROLE_ADMIN: [ROLE_COMITE]
+
+    access_control:
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/doc, roles: PUBLIC_ACCESS }
+        - { path: ^/api/(public|auth/login|auth/inscription), roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_COMITE }
+        - { path: ^/api, roles: ROLE_PARTICIPANT }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

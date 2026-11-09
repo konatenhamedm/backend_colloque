@@ -1,0 +1,14 @@
+# Racine du projet servie par Apache : tout est redirigé vers public/ et le reste est verrouillé.
+# (Idéal : faire pointer le DocumentRoot du vhost directement sur public/ — alors ce fichier est inutile.)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Jamais servir : fichiers PRIVÉS (justificatifs, attestations dans var/data), code, config, secrets, dépendances.
+    RewriteRule ^(var|src|config|vendor|migrations|templates|tests|bin|translations|\.git|\.github)(/|$) - [R=404,L]
+    RewriteRule ^(\.env.*|composer\.(json|lock)|symfony\.lock|README\.md|compose.*\.ya?ml)$ - [R=404,L]
+
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

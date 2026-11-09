@@ -1,0 +1,53 @@
+parameters:
+    jwt.secret: '%env(JWT_SECRET)%'
+    jwt.ttl: '%env(int:JWT_TTL)%'
+    app.front_url: '%env(FRONT_URL)%'
+    # Fichiers publics (logos, visuels) : servis directement par le serveur web
+    upload_dir: '%kernel.project_dir%/public/uploads'
+    # Fichiers privés (justificatifs de paiement, attestations) : JAMAIS dans public/
+    private_dir: '%kernel.project_dir%/%env(PRIVATE_DIR)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            bool $enforceDeadlines: '%env(bool:ENFORCE_DEADLINES)%'
+            string $frontUrl: '%env(FRONT_URL)%'
+            string $mailerFromAddress: '%env(MAILER_FROM_ADDRESS)%'
+            string $mailerFromName: '%env(MAILER_FROM_NAME)%'
+            string $adminNotificationEmail: '%env(ADMIN_NOTIFICATION_EMAIL)%'
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/*/Domain/Entity/'
+            - '../src/*/Domain/Enum/'
+            - '../src/*/Domain/Trait/'
+
+    # --- Bindings Repository (interface du Domain -> implémentation Infrastructure) ---
+    App\Security\Domain\Repository\UtilisateurRepositoryInterface:
+        class: App\Security\Infrastructure\Persistence\UtilisateurRepository
+    App\Colloque\Domain\Repository\ColloqueRepositoryInterface:
+        class: App\Colloque\Infrastructure\Persistence\ColloqueRepository
+    App\Colloque\Domain\Repository\CategorieParticipantRepositoryInterface:
+        class: App\Colloque\Infrastructure\Persistence\CategorieParticipantRepository
+    App\Colloque\Domain\Repository\AxeThematiqueRepositoryInterface:
+        class: App\Colloque\Infrastructure\Persistence\AxeThematiqueRepository
+    App\Inscription\Domain\Repository\InscriptionRepositoryInterface:
+        class: App\Inscription\Infrastructure\Persistence\InscriptionRepository
+    App\Inscription\Domain\Repository\InscriptionTokenRepositoryInterface:
+        class: App\Inscription\Infrastructure\Persistence\InscriptionTokenRepository
+    App\Inscription\Domain\Repository\PaiementRepositoryInterface:
+        class: App\Inscription\Infrastructure\Persistence\PaiementRepository
+    App\Travaux\Domain\Repository\CommunicationRepositoryInterface:
+        class: App\Travaux\Infrastructure\Persistence\CommunicationRepository
+    App\Attestation\Domain\Repository\AttestationRepositoryInterface:
+        class: App\Attestation\Infrastructure\Persistence\AttestationRepository
+    App\Shared\Domain\Repository\FichierRepositoryInterface:
+        class: App\Shared\Infrastructure\Repository\FichierRepository
+
+    App\Attestation\Infrastructure\Pdf\DompdfAttestationGenerator:
+        arguments:
+            $attestationTemplate: '%env(ATTESTATION_TEMPLATE)%'

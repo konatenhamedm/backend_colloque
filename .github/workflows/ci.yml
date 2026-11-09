@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: colloque_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d colloque_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      APP_ENV: dev
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/colloque_ci?serverVersion=16&charset=utf8
+      MAILER_DSN: null://null          # aucun e-mail réel en CI (garanti par variables_order=EGPCS plus bas)
+      FRONT_URL: http://localhost:5180
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, pdo_pgsql, gd, mbstring, zip, ctype, iconv
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer validate --no-check-all --no-check-publish
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      # --- Qualité statique ---
+      - run: php bin/console lint:container
+      - run: php bin/console lint:twig templates
+      - run: php bin/console lint:yaml config
+
+      # --- Base de données : les migrations doivent produire exactement le schéma des entités ---
+      - run: php bin/console doctrine:migrations:migrate --no-interaction
+      - run: php bin/console doctrine:schema:validate
+
+      # --- Parcours complet (inscription -> paiement -> validation -> attestation -> exports) ---
+      - name: Données de démo
+        run: php bin/console doctrine:fixtures:load --no-interaction
+      - name: Démarrer l'API
+        run: |
+          # -d variables_order=EGPCS : sans lui, `php -S` ignore les variables d'environnement du job
+          # (DATABASE_URL, MAILER_DSN...) et Symfony retombe sur les valeurs de .env.
+          php -d variables_order=EGPCS -S 127.0.0.1:8011 -t public > /tmp/php-server.log 2>&1 &
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8011/api/public/colloque > /dev/null && exit 0; sleep 1; done
+          echo "API injoignable"; cat /tmp/php-server.log; exit 1
+      - name: Test de bout en bout
+        run: python3 -I tests/e2e/run.py http://127.0.0.1:8011/api var/log/dev.log
+      - name: Journal en cas d'échec
+        if: failure()
+        run: tail -n 80 var/log/dev.log || true

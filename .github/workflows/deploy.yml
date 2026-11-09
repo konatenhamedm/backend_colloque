@@ -1,0 +1,108 @@
+name: Deploy Backend
+
+# Déploie sur https://backforum.instapoint.site à chaque push sur la branche `production`.
+# Secrets du dépôt requis : APP_HOST, APP_USER, APP_PASS (même principe que Educ360).
+on:
+  push:
+    branches: [production]
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false   # on n'interrompt jamais un déploiement en cours (migrations)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SSHPASS: ${{ secrets.APP_PASS }}
+      TARGET_DIR: /var/www/backforum.instapoint.site/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install SSHPASS
+        run: sudo apt update && sudo apt install sshpass -y
+
+      - name: Vérifier la configuration de production (avant toute modification)
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
+            cd $TARGET_DIR || { echo '❌ Dossier $TARGET_DIR introuvable'; exit 1; }
+            [ -f .env.local ] || { echo '❌ .env.local absent : copiez .env.prod.example et renseignez les valeurs'; exit 1; }
+            for k in APP_SECRET JWT_SECRET DATABASE_URL MAILER_DSN FRONT_URL CORS_ALLOW_ORIGIN; do
+              grep -q \"^\$k=\" .env.local || { echo \"❌ \$k manquant dans .env.local\"; exit 1; }
+            done
+            if grep -Eq '^(JWT_SECRET|APP_SECRET)=.*(dev-|placeholder|change)' .env.local; then
+              echo '❌ JWT_SECRET/APP_SECRET sont encore des valeurs de développement'; exit 1
+            fi
+            echo '✅ Configuration de production valide'
+          "
+
+      - name: Backup Database Before Deploy
+        run: |
+          echo "🔒 Sauvegarde de la base de données avant déploiement..."
+          sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
+            BACKUP_DIR=/var/www/backups/db/forum
+            mkdir -p \"\$BACKUP_DIR\"
+            TIMESTAMP=\$(date +%Y%m%d_%H%M%S)
+            cd $TARGET_DIR && \
+            DB_URL=\$(grep '^DATABASE_URL=' .env.local | tail -1 | cut -d= -f2- | tr -d '\"')
+            DB_USER=\$(echo \"\$DB_URL\" | sed -n 's|.*://\([^:]*\):.*|\1|p')
+            DB_PASS=\$(echo \"\$DB_URL\" | sed -n 's|.*://[^:]*:\([^@]*\)@.*|\1|p')
+            DB_HOST=\$(echo \"\$DB_URL\" | sed -n 's|.*@\([^:]*\):.*|\1|p')
+            DB_PORT=\$(echo \"\$DB_URL\" | sed -n 's|.*:\([0-9]*\)/.*|\1|p')
+            DB_NAME=\$(echo \"\$DB_URL\" | sed -n 's|.*/\([^?]*\).*|\1|p')
+            BACKUP_FILE=\"\$BACKUP_DIR/\${DB_NAME}_pre_deploy_\${TIMESTAMP}.sql.gz\"
+            echo \"Backup de \$DB_NAME vers \$BACKUP_FILE...\"
+            if PGPASSWORD=\"\$DB_PASS\" pg_dump -h \"\$DB_HOST\" -p \"\$DB_PORT\" -U \"\$DB_USER\" -f \"\${BACKUP_FILE%.gz}\" \"\$DB_NAME\" && gzip -f \"\${BACKUP_FILE%.gz}\"; then
+              echo \"✅ Backup réussi : \$BACKUP_FILE (\$(du -h \"\$BACKUP_FILE\" | cut -f1))\"
+            else
+              echo \"⚠️ Backup échoué, mais le déploiement continue...\"
+            fi
+            # Garder uniquement les 10 derniers backups
+            ls -t \"\$BACKUP_DIR\"/*.sql.gz 2>/dev/null | tail -n +11 | xargs rm -f 2>/dev/null
+          " || echo "⚠️ Backup SSH échoué, déploiement continue quand même..."
+
+      - name: Deploy and Update Symfony
+        run: |
+          SUCCESS=0
+          for i in {1..3}; do
+            echo "Tentative de déploiement Backend $i/3..."
+            if sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=5 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
+              cd $TARGET_DIR && \
+              git config --global --add safe.directory '*' && \
+              git fetch origin production && \
+              git reset --hard origin/production && \
+              export APP_ENV=prod && \
+              COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --optimize-autoloader && \
+              COMPOSER_ALLOW_SUPERUSER=1 composer dump-env prod && \
+              php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod && \
+              php bin/console doctrine:schema:validate --skip-sync --env=prod && \
+              php bin/console cache:clear --env=prod && \
+              php bin/console cache:warmup --env=prod && \
+              mkdir -p var/cache var/log var/data && \
+              chmod -R 775 var && \
+              (chgrp -R www-data var 2>/dev/null || true) \
+            "; then
+              SUCCESS=1
+              echo "Déploiement Backend réussi !"
+              break
+            else
+              echo "Tentative SSH $i échouée, nouvelle tentative dans 10s..."
+              sleep 10
+            fi
+          done
+          if [ $SUCCESS -ne 1 ]; then
+            echo "ERREUR : Échec du déploiement SSH Backend après 3 tentatives !"
+            exit 1
+          fi
+
+      - name: Vérification après déploiement
+        run: |
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://backforum.instapoint.site/api/public/colloque || true)
+            echo "GET /api/public/colloque -> $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 5
+          done
+          echo "❌ L'API ne répond pas correctement après déploiement"; exit 1
