@@ -24,6 +24,18 @@ jobs:
       - name: Install SSHPASS
         run: sudo apt update && sudo apt install sshpass -y
 
+      - name: Écrire .env.local depuis le secret ENV_LOCAL (si défini)
+        env:
+          ENV_LOCAL: ${{ secrets.ENV_LOCAL }}
+        run: |
+          if [ -z "$ENV_LOCAL" ]; then
+            echo "Secret ENV_LOCAL non défini : on conserve le .env.local déjà présent sur le serveur."
+            exit 0
+          fi
+          printf '%s\n' "$ENV_LOCAL" | sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
+            mkdir -p $TARGET_DIR && cat > $TARGET_DIR/.env.local && chmod 600 $TARGET_DIR/.env.local"
+          echo "✅ .env.local écrit sur le serveur (permissions 600)"
+
       - name: Vérifier la configuration de production (avant toute modification)
         run: |
           sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
@@ -70,6 +82,7 @@ jobs:
             echo "Tentative de déploiement Backend $i/3..."
             if sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=5 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
               cd $TARGET_DIR && \
+              ([ -d .git ] || (git init -q && git remote add origin https://github.com/${{ github.repository }}.git)) && \
               git config --global --add safe.directory '*' && \
               git fetch origin production && \
               git reset --hard origin/production && \

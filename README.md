@@ -41,3 +41,6 @@ Sans Mailpit, l'envoi échoue sans bloquer l'inscription, et le lien d'inscripti
 
 ### Tester en local avec `php -S`
 Toujours lancer `php -d variables_order=EGPCS -S 127.0.0.1:8011 -t public` : sans cette option, PHP ignore les variables d'environnement (`DATABASE_URL`, `MAILER_DSN`) et Symfony utilise `.env` / `.env.local`.
+
+### Configuration de production sans SSH : secret `ENV_LOCAL`
+Dans GitHub (Settings → Secrets → Actions), créer le secret **`ENV_LOCAL`** avec le contenu complet de `.env.prod.example` renseigné. Le déploiement l'écrit dans `.env.local` sur le serveur (permissions 600) avant chaque déploiement, puis refuse de continuer si des secrets de développement sont détectés. Sans ce secret, le `.env.local` déjà présent sur le serveur est conservé.
