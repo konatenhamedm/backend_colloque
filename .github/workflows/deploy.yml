@@ -19,6 +19,8 @@ jobs:
       TARGET_DIR: /var/www/backforum.instapoint.site/web
       # Le backend exige PHP >= 8.4. Sur le VPS, PHP 8.4 est installé À CÔTÉ de la 8.2 (utilisée par les autres sites) : on appelle donc explicitement php8.4.
       PHP_BIN: php8.4
+      # Certificats SSL pas encore actifs : HTTP par défaut. Quand ils le sont : variable de dépôt USE_HTTPS=true.
+      SCHEME: ${{ vars.USE_HTTPS == 'true' && 'https' || 'http' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -117,7 +119,7 @@ jobs:
       - name: Vérification après déploiement
         run: |
           for i in $(seq 1 10); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' https://backforum.instapoint.site/api/public/colloque || true)
+            code=$(curl -s -o /dev/null -w '%{http_code}' ${SCHEME}://backforum.instapoint.site/api/public/colloque || true)
             echo "GET /api/public/colloque -> $code"
             [ "$code" = "200" ] && exit 0
             sleep 5
