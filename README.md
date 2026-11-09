@@ -44,3 +44,7 @@ Toujours lancer `php -d variables_order=EGPCS -S 127.0.0.1:8011 -t public` : san
 
 ### Configuration de production sans SSH : secret `ENV_LOCAL`
 Dans GitHub (Settings → Secrets → Actions), créer le secret **`ENV_LOCAL`** avec le contenu complet de `.env.prod.example` renseigné. Le déploiement l'écrit dans `.env.local` sur le serveur (permissions 600) avant chaque déploiement, puis refuse de continuer si des secrets de développement sont détectés. Sans ce secret, le `.env.local` déjà présent sur le serveur est conservé.
+
+### Données initiales en production
+**Ne jamais lancer `doctrine:fixtures:load` en production** : il efface toute la base et crée un admin au mot de passe connu (`Admin#2027`). Le déploiement exécute à la place `app:seed-colloque` (idempotent : crée le colloque s'il n'existe pas, sans rien effacer ni créer d'utilisateur). Le premier admin se crée à la main, avec un mot de passe solide :
+`php8.4 bin/console app:create-admin email@exemple.com 'MotDePasseSolide' --env=prod`

@@ -96,6 +96,7 @@ jobs:
               COMPOSER_ALLOW_SUPERUSER=1 $PHP_BIN \$(command -v composer) install --no-dev --no-interaction --optimize-autoloader && \
               COMPOSER_ALLOW_SUPERUSER=1 $PHP_BIN \$(command -v composer) dump-env prod && \
               $PHP_BIN bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration --env=prod && \
+              $PHP_BIN bin/console app:seed-colloque --env=prod && \
               $PHP_BIN bin/console doctrine:schema:validate --skip-sync --env=prod && \
               $PHP_BIN bin/console cache:clear --env=prod && \
               $PHP_BIN bin/console cache:warmup --env=prod && \
