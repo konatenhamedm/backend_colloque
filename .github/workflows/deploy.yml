@@ -105,8 +105,9 @@ jobs:
               $PHP_BIN bin/console cache:clear --env=prod && \
               $PHP_BIN bin/console cache:warmup --env=prod && \
               mkdir -p var/cache var/log var/data && \
-              chmod -R 775 var && \
-              (chgrp -R www-data var 2>/dev/null || true) \
+              { OWN=\$(stat -c '%U:%G' $TARGET_DIR); [ \"\${OWN%%:*}\" = root ] && OWN=www-data:www-data; true; } && \
+              chown -R \"\$OWN\" $TARGET_DIR && \
+              chmod -R 775 var \
             "; then
               SUCCESS=1
               echo "Déploiement Backend réussi !"

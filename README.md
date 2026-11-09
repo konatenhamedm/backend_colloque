@@ -48,3 +48,9 @@ Dans GitHub (Settings → Secrets → Actions), créer le secret **`ENV_LOCAL`**
 ### Données initiales en production
 **Ne jamais lancer `doctrine:fixtures:load` en production** : il efface toute la base et crée un admin au mot de passe connu (`Admin#2027`). Le déploiement exécute à la place `app:seed-colloque` (idempotent : crée le colloque s'il n'existe pas, sans rien effacer ni créer d'utilisateur). Le premier admin se crée à la main, avec un mot de passe solide :
 `php8.4 bin/console app:create-admin email@exemple.com 'MotDePasseSolide' --env=prod`
+
+### Serveur géré par ISPConfig (cas de forum.instapoint.site)
+- La version PHP se choisit **dans ISPConfig** (Sites web → le domaine → onglet *Options* → PHP-FPM → version **PHP 8.4**). Ne pas éditer le fichier `.vhost` à la main : ISPConfig le régénère.
+- Si « PHP 8.4 » n'est pas proposé : System → *Additional PHP Versions* → ajouter PHP 8.4 (init script `php8.4-fpm`, dossier php.ini `/etc/php/8.4/fpm`, dossier des pools `/etc/php/8.4/fpm/pool.d`).
+- Le déploiement donne ensuite tout le dossier au propriétaire du site (utilisateur `webN`), sans quoi PHP ne peut pas écrire dans `var/` (cache, logs, fichiers privés).
+- Limite d'envoi : si besoin, renseigner dans le champ *Custom php.ini settings* du site : `upload_max_filesize=12M` et `post_max_size=14M`.
