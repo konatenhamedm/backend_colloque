@@ -18,7 +18,7 @@ use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
- * Données de démonstration. Contenu du colloque = flyer officiel (PTRC-GD, Bouaké, 17-19 mars 2027).
+ * Données de démonstration. Contenu du colloque = 3ᵉ Forum des Jeunes Chercheurs en Géographie (FJCG), 26 novembre 2026, UFHB (voir ColloqueSeeder).
  * Comptes : admin@colloque.local / Admin#2027 — comite@colloque.local / Comite#2027 — participants : Participant#2027
  */
 class AppFixtures extends Fixture
@@ -47,13 +47,13 @@ class AppFixtures extends Fixture
             ['Koffi', 'Aya', 'Université Félix Houphouët-Boigny', 'Côte d\'Ivoire', 0, 'COMMUNICANT', 'WAVE', 'issued'],
             ['Traoré', 'Mamadou', 'Université Alassane Ouattara', 'Côte d\'Ivoire', 0, 'COMMUNICANT', 'ORANGE_MONEY', 'attended'],
             ['Diallo', 'Fatoumata', 'Université Cheikh Anta Diop', 'Sénégal', 0, 'COMMUNICANT', 'WAVE', 'validated_work'],
-            ['Ouédraogo', 'Issa', 'Université Joseph Ki-Zerbo', 'Burkina Faso', 0, 'COMMUNICANT', 'MOOV_MONEY', 'validated'],
+            ['Ouédraogo', 'Issa', 'Université Joseph Ki-Zerbo', 'Burkina Faso', 0, 'COMMUNICANT', 'ORANGE_MONEY', 'validated'],
             ['Bamba', 'Aïcha', 'Université Internationale ICK', 'Côte d\'Ivoire', 1, 'AUDITEUR', 'ORANGE_MONEY', 'validated'],
             ['N\'Guessan', 'Kévin', 'Université de Bouaké', 'Côte d\'Ivoire', 1, 'AUDITEUR', 'WAVE', 'validated'],
-            ['Mba', 'Chantal', 'Université Omar Bongo', 'Gabon', 0, 'COMMUNICANT', 'WESTERN_UNION', 'pending'],
+            ['Mba', 'Chantal', 'Université Omar Bongo', 'Gabon', 0, 'COMMUNICANT', 'WAVE', 'pending'],
             ['Sow', 'Abdoulaye', 'Université Gaston Berger', 'Sénégal', 0, 'AUDITEUR', 'WAVE', 'pending'],
             ['Yao', 'Prisca', 'INP-HB Yamoussoukro', 'Côte d\'Ivoire', 2, 'AUDITEUR', 'ORANGE_MONEY', 'pending'],
-            ['Camara', 'Seydou', 'Consultant indépendant', 'Guinée', 2, 'AUDITEUR', 'MOOV_MONEY', 'pending'],
+            ['Camara', 'Seydou', 'Consultant indépendant', 'Guinée', 2, 'AUDITEUR', 'ORANGE_MONEY', 'pending'],
             ['Tano', 'Esther', 'Université Péléforo Gon Coulibaly', 'Côte d\'Ivoire', 1, 'AUDITEUR', 'WAVE', 'rejected'],
             ['Kouamé', 'Landry', 'Université de Man', 'Côte d\'Ivoire', 1, 'AUDITEUR', 'ORANGE_MONEY', 'validated'],
         ];

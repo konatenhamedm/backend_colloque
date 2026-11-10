@@ -72,7 +72,11 @@ s, d = call("GET", "/public/colloque")
 col = d["data"]
 cat = col["categories"][0]
 axe = col["axes"][0]
-check("colloque public (6 axes, 3 catégories, dates Y-m-d)", len(col["axes"]) == 6 and len(col["categories"]) == 3 and col["dateDebut"] == "2027-03-17", col["dateDebut"])
+check("sigle déduit du titre (FJCG)", col["sigle"] == "FJCG", col.get("sigle"))
+check("colloque public (FJCG : 3 catégories à 10 000, date Y-m-d, heures, 4 animateurs, 2 canaux avec numéros)",
+      len(col["categories"]) == 3 and all(c["montant"] == 10000 for c in col["categories"]) and col["dateDebut"] == "2026-11-26" and col["heures"] == "08h00 – 16h00"
+      and len(col["intervenants"]) == 4 and [c["code"] for c in col["canauxPaiement"]] == ["ORANGE_MONEY", "WAVE"] and all(len(c["numeros"]) == 2 for c in col["canauxPaiement"]), str(col)[:200])
+check("le colloque public n'expose pas les signataires", "signataire" not in json.dumps(col).lower() and "SIGNATAIRE" not in json.dumps(col))
 def new_token(email):
     s_, _ = call("POST", "/auth/inscription/demarrer", json_body={"email": email})
     links = re.findall(r'"lien":"([^"]+)"', open(LOG).read())
@@ -80,6 +84,9 @@ def new_token(email):
 
 s, _ = call("POST", "/auth/inscription/demarrer", json_body={"email": "pas-un-email"})
 check("e-mail invalide -> 400", s == 400)
+s, tokm = new_token("moov@exemple.ci")
+s, d = call("POST", "/auth/inscription", fields={"token": tokm, "password": "MonMotDePasse1", "nom": "M", "prenom": "M", "institution": "U", "categorieId": cat["id"], "canal": "MOOV_MONEY", "reference": "MOOV1"}, files={"justificatif": PROOF})
+check("moyen de paiement non accepté pour cet événement (Moov) -> 400", s == 400 and "pas accepté" in d.get("message", ""), str(d)[:150])
 s, tok = new_token("zoe.test@exemple.ci")
 check("démarrer -> 202 + lien avec jeton", s == 202 and tok and len(tok) > 30)
 check("vérifier jeton -> e-mail pré-rempli", call("GET", f"/auth/inscription/verifier?token={tok}")[1]["data"]["email"] == "zoe.test@exemple.ci")
@@ -185,6 +192,7 @@ s, body, ctype = call("GET", "/espace/attestation/telecharger", zoe, raw=True)
 check("téléchargement PDF", s == 200 and body[:4] == b"%PDF" and "pdf" in ctype, f"{s} {ctype} {body[:20]}")
 s, d = call("GET", "/espace/attestation", zoe)
 code = d["data"]["codeVerification"]
+check("numéro d'attestation préfixé par le sigle de l'événement (FJCG)", d["data"]["numero"].startswith("FJCG-2026-"), d["data"]["numero"])
 s, d = call("GET", f"/public/attestations/{code}")
 check("vérification publique par code (sans e-mail exposé)", s == 200 and d["data"]["valide"] and "email" not in json.dumps(d["data"]).lower(), str(d)[:200])
 check("code inconnu -> 404", call("GET", "/public/attestations/zzzzzzzzzzzz")[0] == 404)
@@ -200,5 +208,69 @@ for t in ("emargement", "finances"):
     for fmt in ("xlsx", "csv"):
         s, body, ctype = call("GET", f"/admin/exports/{t}?format={fmt}", adm, raw=True)
         check(f"export {t}.{fmt}", s == 200 and len(body) > 100, f"{s} {len(body)}")
+
+print("# Paramètres du colloque (back-office)")
+check("participant -> /admin/colloque -> 403", call("GET", "/admin/colloque", zoe)[0] == 403)
+check("comité -> /admin/colloque -> 403 (réservé aux admins)", call("GET", "/admin/colloque", com)[0] == 403)
+s, d = call("GET", "/admin/colloque", adm)
+items = d["data"]["items"]
+by = lambda t: [i for i in items if i["type"] == t]
+check("admin : 9 éléments (4 animateurs, 2 signataires, 3 logos)", s == 200 and (len(by("INTERVENANT")), len(by("SIGNATAIRE")), len(by("PARTENAIRE"))) == (4, 2, 3), str((len(items))))
+cats = d["data"]["colloque"]["categories"]
+s, d = call("PUT", "/admin/colloque", adm, json_body={"heures": "09h00 – 17h00", "lieu": "Auditorium de test", "cibles": "Étudiants\nChercheurs"})
+check("modification générale (heures, lieu, cibles)", s == 200 and d["data"]["colloque"]["heures"] == "09h00 – 17h00" and d["data"]["colloque"]["cibles"] == ["Étudiants", "Chercheurs"], str(d)[:160])
+s, d = call("PUT", "/admin/colloque", adm, json_body={"dateDebut": "2026-11-26", "dateFin": "2026-11-25"})
+check("date de fin avant la date de début -> 400", s == 400)
+s, d = call("PUT", "/admin/colloque", adm, json_body={"canauxPaiement": [{"code": "BITCOIN", "numeros": ["1"]}]})
+check("moyen de paiement inconnu -> 400", s == 400)
+s, d = call("PUT", "/admin/colloque", adm, json_body={"canauxPaiement": [{"code": "WAVE", "numeros": "07 00 00 00 00\n01 00 00 00 00"}, {"code": "ORANGE_MONEY", "numeros": ["07 11 11 11 11"]}]})
+check("numéros de paiement par canal", s == 200 and d["data"]["colloque"]["canauxPaiement"][0]["numeros"] == ["07 00 00 00 00", "01 00 00 00 00"], str(d)[:160])
+s, d = call("PUT", "/admin/colloque", adm, json_body={"categories": [*cats, {"libelle": "Invité", "montant": 0}]})
+check("ajout d'une catégorie gratuite", s == 200 and len(d["data"]["colloque"]["categories"]) == 4, str(d)[:160])
+s, d = call("PUT", "/admin/colloque", adm, json_body={"categories": cats})
+check("retrait de la catégorie inutilisée", s == 200 and len(d["data"]["colloque"]["categories"]) == 3)
+s, d = call("PUT", "/admin/colloque", adm, json_body={"categories": cats[:1]})
+check("retrait de catégories utilisées par des inscrits -> 400", s == 400, d.get("message", ""))
+s, d = call("PUT", "/admin/colloque", adm, json_body={"categories": [{"libelle": "X", "montant": "abc"}]})
+check("montant invalide -> 400", s == 400)
+
+anim = by("INTERVENANT")[0]
+s, d = call("POST", "/admin/colloque/items", adm, fields={"type": "INTERVENANT", "nom": "Pr Test Animateur", "titre": "Titre test", "role": "Axe 9", "ordre": "9"}, files={"image": PROOF})
+check("ajout d'un animateur avec photo -> 201, photo publique", s == 201 and d["data"]["imageUrl"] and d["data"]["imageUrl"].startswith("/uploads/intervenants/"), str(d)[:160])
+new_id, photo = d["data"]["id"], d["data"]["imageUrl"]
+req = urllib.request.Request(A.replace("/api", "") + photo)
+check("la photo est servie publiquement (image/png)", urllib.request.urlopen(req).headers.get("Content-Type") == "image/png")
+s, d = call("GET", "/public/colloque")
+check("l'animateur apparaît sur la page publique avec sa photo", any(i["nom"] == "Pr Test Animateur" and i["photo"] == photo for i in d["data"]["intervenants"]))
+s, d = call("POST", "/admin/colloque/items", adm, fields={"type": "INTERVENANT", "nom": "Piège"}, files={"image": EVIL})
+check("image piégée (script .php.png) -> 400", s == 400, d.get("message", ""))
+s, d = call("POST", "/admin/colloque/items", adm, fields={"type": "INTERVENANT", "nom": ""})
+check("nom obligatoire -> 400", s == 400)
+s, d = call("POST", "/admin/colloque/items", adm, fields={"type": "NIMPORTEQUOI", "nom": "x"})
+check("type invalide -> 400", s == 400)
+s, d = call("POST", f"/admin/colloque/items/{new_id}", adm, fields={"nom": "Pr Test Modifié", "removeImage": "1"})
+check("modification + retrait de la photo", s == 200 and d["data"]["nom"] == "Pr Test Modifié" and d["data"]["imageUrl"] is None, str(d)[:160])
+try:
+    urllib.request.urlopen(urllib.request.Request(A.replace("/api", "") + photo)); gone = False
+except urllib.error.HTTPError as e:
+    gone = e.code == 404
+check("l'ancienne photo a bien été supprimée du disque (404)", gone)
+s, d = call("DELETE", f"/admin/colloque/items/{new_id}", adm)
+check("suppression de l'animateur", s == 200)
+check("suppression d'un élément inexistant -> 404", call("DELETE", f"/admin/colloque/items/{new_id}", adm)[0] == 404)
+
+sig = by("SIGNATAIRE")[0]
+s, d = call("POST", f"/admin/colloque/items/{sig['id']}", adm, fields={"nom": sig["nom"]}, files={"image": PROOF})
+check("signature téléversée : image PRIVÉE (pas d'URL publique)", s == 200 and d["data"]["imageUrl"] is None and d["data"]["imageUuid"], str(d)[:160])
+sid = d["data"]["imageUuid"]
+st = lambda t: call("GET", f"/fichiers/{sid}", t, raw=True)[0]
+check("signature : admin 200 / participant 404 / anonyme 401", (st(adm), st(zoe), st(None)) == (200, 404, 401), str((st(adm), st(zoe), st(None))))
+s, body, ctype = call("GET", "/espace/recu/telecharger", zoe, raw=True)
+check("reçu PDF avec signature intégrée", s == 200 and body[:4] == b"%PDF", str(s))
+s, body, ctype = call("GET", f"/admin/attestations/apercu?template=classique&inscription={iid}", adm, raw=True)
+check("aperçu d'attestation avec signature", s == 200 and body[:4] == b"%PDF", str(s))
+s, body, ctype = call("GET", "/admin/attestations/apercu?template=moderne", adm, raw=True)
+check("aperçu du modèle moderne", s == 200 and body[:4] == b"%PDF", str(s))
+
 print(f"\n{ok} OK / {fail} FAIL")
 sys.exit(1 if fail else 0)

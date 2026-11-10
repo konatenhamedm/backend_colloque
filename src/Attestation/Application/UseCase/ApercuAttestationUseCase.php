@@ -34,7 +34,7 @@ class ApercuAttestationUseCase
                 ->setCategorie((new CategorieParticipant())->setLibelle('Exemple'));
         }
         $attestation = (new Attestation())->setInscription($inscription)
-            ->setNumero(sprintf('PTRCGD-%d-%05d', $inscription->getColloque()->getAnnee(), $inscription->getId() ?? 0));
+            ->setNumero(sprintf('%s-%d-%05d', $inscription->getColloque()->getSigle(), $inscription->getColloque()->getAnnee(), $inscription->getId() ?? 0));
 
         return $this->generator->generate($attestation, rtrim($this->frontUrl, '/').'/verification/'.$attestation->getCodeVerification(), $template);
     }

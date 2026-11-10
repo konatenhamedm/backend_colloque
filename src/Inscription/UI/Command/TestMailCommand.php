@@ -49,7 +49,7 @@ class TestMailCommand extends Command
         $ins = (new Inscription())->setUtilisateur($user)->setColloque($colloque)->setCategorie($cat)->setInstitution('Université de démonstration');
         $paiement = (new Paiement())->setCanal(CanalPaiement::WAVE)->setReference('TEST-0001')->setMontant(40000);
         $ins->addPaiement($paiement);
-        $att = (new Attestation())->setInscription($ins)->setNumero('PTRCGD-TEST-00001');
+        $att = (new Attestation())->setInscription($ins)->setNumero('FJCG-TEST-00001');
 
         $this->notifier->lienInscription($user->getEmail(), 'jeton-de-test-non-valide');
         $this->notifier->inscriptionRecue($ins);

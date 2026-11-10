@@ -39,7 +39,7 @@ class EmettreAttestationsUseCase
                 continue;
             }
             $attestation = (new Attestation())->setInscription($inscription)
-                ->setNumero(sprintf('PTRCGD-%d-%05d', $inscription->getColloque()->getAnnee(), $inscription->getId()));
+                ->setNumero(sprintf('%s-%d-%05d', $inscription->getColloque()->getSigle(), $inscription->getColloque()->getAnnee(), $inscription->getId()));
             $pdf = $this->generator->generate($attestation, rtrim($this->frontUrl, '/').'/verification/'.$attestation->getCodeVerification(), $template);
             $attestation->setFichier($this->storage->storeGenerated($pdf, $attestation->getNumero().'.pdf', 'application/pdf', 'attestations'));
             $this->attestations->add($attestation);

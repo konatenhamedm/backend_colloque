@@ -1,7 +1,7 @@
 nelmio_api_doc:
     documentation:
         info:
-            title: API Colloque PTRC-GD
+            title: API Forum (inscriptions, paiements, attestations)
             description: Plateforme de gestion du colloque international (inscriptions, paiements, travaux, attestations).
             version: 1.0.0
         components:

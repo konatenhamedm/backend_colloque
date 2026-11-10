@@ -74,10 +74,29 @@ class Colloque
     #[Groups(['colloque:read'])]
     private array $canauxPaiement = [];
 
-    /** Intervenants affichés sur la landing : [{nom, titre, photo}] (photo = URL ou null -> initiales) */
+    /** Heures de l'événement, texte libre (ex. « 08h00 – 16h00 »). */
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['colloque:read'])]
+    private ?string $heures = null;
+
+    /** Publics visés (ex. « Étudiants (Master et Thèse) »). @var string[] */
     #[ORM\Column(type: 'json')]
     #[Groups(['colloque:read'])]
-    private array $intervenants = [];
+    private array $cibles = [];
+
+    /** Comité d'organisation : [{role, nom, details}] */
+    #[ORM\Column(type: 'json')]
+    #[Groups(['colloque:read'])]
+    private array $comite = [];
+
+    /** Version du contenu initial (seed). `custom` dès qu'un administrateur modifie la configuration : plus jamais écrasé. */
+    #[ORM\Column(length: 40, nullable: true)]
+    private ?string $seedKey = null;
+
+    /** @var Collection<int, ColloqueItem> */
+    #[ORM\OneToMany(targetEntity: ColloqueItem::class, mappedBy: 'colloque', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['ordre' => 'ASC', 'id' => 'ASC'])]
+    private Collection $items;
 
     /** Documents mis à disposition des inscrits validés : [{titre, description, url}] */
     #[ORM\Column(type: 'json')]
@@ -113,6 +132,7 @@ class Colloque
     {
         $this->axes = new ArrayCollection();
         $this->categories = new ArrayCollection();
+        $this->items = new ArrayCollection();
         $this->dateDebut = new \DateTimeImmutable();
         $this->dateFin = new \DateTimeImmutable();
         $this->dateLimiteCommunication = new \DateTimeImmutable();
@@ -142,8 +162,35 @@ class Colloque
     public function setContacts(array $v): self { $this->contacts = $v; return $this; }
     public function getCanauxPaiement(): array { return $this->canauxPaiement; }
     public function setCanauxPaiement(array $v): self { $this->canauxPaiement = $v; return $this; }
-    public function getIntervenants(): array { return $this->intervenants; }
-    public function setIntervenants(array $v): self { $this->intervenants = $v; return $this; }
+    public function getHeures(): ?string { return $this->heures; }
+    public function setHeures(?string $v): self { $this->heures = $v; return $this; }
+    public function getCibles(): array { return $this->cibles; }
+    public function setCibles(array $v): self { $this->cibles = array_values($v); return $this; }
+    public function getComite(): array { return $this->comite; }
+    public function setComite(array $v): self { $this->comite = array_values($v); return $this; }
+    public function getSeedKey(): ?string { return $this->seedKey; }
+    public function setSeedKey(?string $v): self { $this->seedKey = $v; return $this; }
+
+    /** @return Collection<int, ColloqueItem> */
+    public function getItems(): Collection { return $this->items; }
+    public function addItem(ColloqueItem $i): self { if (!$this->items->contains($i)) { $this->items->add($i); $i->setColloque($this); } return $this; }
+    public function removeItem(ColloqueItem $i): self { $this->items->removeElement($i); return $this; }
+    /** @return ColloqueItem[] */
+    public function getItemsByType(string $type): array { return array_values($this->items->filter(fn (ColloqueItem $i) => $i->getType() === $type)->toArray()); }
+    public function removeCategorie(CategorieParticipant $c): self { $this->categories->removeElement($c); return $this; }
+
+    /** Animateurs affichés sur la landing (la photo n'est exposée que si elle est publique). @return array<int,array<string,mixed>> */
+    #[Groups(['colloque:read'])]
+    public function getIntervenants(): array { return $this->publicItems(ColloqueItem::INTERVENANT); }
+
+    /** Logos des organisateurs / partenaires. @return array<int,array<string,mixed>> */
+    #[Groups(['colloque:read'])]
+    public function getPartenaires(): array { return $this->publicItems(ColloqueItem::PARTENAIRE); }
+
+    private function publicItems(string $type): array
+    {
+        return array_map(fn (ColloqueItem $i) => ['id' => $i->getId(), 'nom' => $i->getNom(), 'titre' => $i->getTitre(), 'role' => $i->getRole(), 'photo' => $i->getImageUrl()], $this->getItemsByType($type));
+    }
     public function getDocuments(): array { return $this->documents; }
     public function setDocuments(array $v): self { $this->documents = $v; return $this; }
     public function getDateLimiteCommunication(): \DateTimeImmutable { return $this->dateLimiteCommunication; }
@@ -159,6 +206,13 @@ class Colloque
 
     public function addAxe(AxeThematique $a): self { if (!$this->axes->contains($a)) { $this->axes->add($a); $a->setColloque($this); } return $this; }
     public function addCategorie(CategorieParticipant $c): self { if (!$this->categories->contains($c)) { $this->categories->add($c); $c->setColloque($this); } return $this; }
+
+    /** Sigle de l'événement : le texte entre parenthèses du titre (ex. « FJCG »), utilisé pour nommer les attestations et le logo. */
+    #[Groups(['colloque:read'])]
+    public function getSigle(): string
+    {
+        return preg_match('/\(([^)]{2,14})\)/u', $this->titre, $m) ? mb_strtoupper(preg_replace('/[^\p{L}\p{N}]/u', '', $m[1])) : 'FORUM';
+    }
 
     #[Groups(['colloque:read'])]
     public function getAnnee(): int { return (int) $this->dateDebut->format('Y'); }

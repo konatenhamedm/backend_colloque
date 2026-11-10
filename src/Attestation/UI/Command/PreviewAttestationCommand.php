@@ -44,7 +44,7 @@ class PreviewAttestationCommand extends Command
         $user = (new Utilisateur())->setPrenom($prenom)->setNom($nom);
         $ins = (new Inscription())->setUtilisateur($user)->setColloque($colloque)->setInstitution('Université Internationale ICK de Bouaké')
             ->setCategorie((new CategorieParticipant())->setLibelle('Exemple'));
-        $att = (new Attestation())->setInscription($ins)->setNumero(sprintf('PTRCGD-%d-00001', $colloque->getAnnee()));
+        $att = (new Attestation())->setInscription($ins)->setNumero(sprintf('%s-%d-00001', $colloque->getSigle(), $colloque->getAnnee()));
 
         $dir = rtrim((string) $input->getOption('out'), '/');
         @mkdir($dir, 0775, true);

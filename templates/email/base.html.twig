@@ -16,10 +16,10 @@
       </td></tr>
       {# En-tête #}
       <tr><td style="background:#0f1a4a;padding:26px 32px;">
-        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#f0a35a;font-weight:bold;">{{ colloque.sousTitre|default('Inscription') }}</div>
-        <div style="margin-top:8px;font-size:20px;line-height:1.3;color:#ffffff;font-weight:bold;">{{ colloque.theme|default(colloque.titre|default('')) }}</div>
+        <div style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#f0a35a;font-weight:bold;">{{ colloque.titre|default('Inscription') }}{% if colloque.sousTitre is defined and colloque.sousTitre %} · {{ colloque.sousTitre }}{% endif %}</div>
+        <div style="margin-top:8px;font-size:20px;line-height:1.3;color:#ffffff;font-weight:bold;">« {{ colloque.theme|default(colloque.titre|default('')) }} »</div>
         {% if colloque.lieu is defined %}
-        <div style="margin-top:10px;font-size:13px;color:#aab6e4;">{{ colloque.dateDebut|date('d/m/Y') }} · {{ colloque.lieu }}</div>
+        <div style="margin-top:10px;font-size:13px;color:#aab6e4;">{{ colloque.dateDebut|date('d/m/Y') }}{% if colloque.heures %} · {{ colloque.heures }}{% endif %} · {{ colloque.lieu }}</div>
         {% endif %}
       </td></tr>
       {# Contenu #}

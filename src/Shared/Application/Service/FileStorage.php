@@ -30,6 +30,35 @@ class FileStorage
         return $this->store($file, $folder, self::MIME_DOCUMENT);
     }
 
+    /**
+     * Image d'un élément du colloque (photo d'animateur, logo : publique ; signature : privée).
+     * Le type MIME est deviné depuis le contenu ; le SVG est refusé (il peut contenir du script).
+     */
+    public function storeImage(UploadedFile $file, string $folder, bool $public): Fichier
+    {
+        if (!$file->isValid()) {
+            throw new BadRequestHttpException('Le téléversement a échoué, veuillez réessayer.');
+        }
+        if (!in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            throw new BadRequestHttpException('Image non acceptée : formats JPG, PNG ou WebP uniquement.');
+        }
+        try {
+            $fichier = (new Fichier())->setPath($folder)->setVisibilite($public ? Fichier::PUBLIC : Fichier::PRIVE);
+            $fichier->setFile($file);
+        } catch (\InvalidArgumentException $e) {
+            throw new BadRequestHttpException($e->getMessage());
+        }
+        $this->repository->add($fichier);
+        return $fichier;
+    }
+
+    public function remove(?Fichier $fichier): void
+    {
+        if ($fichier !== null) {
+            $this->repository->remove($fichier);
+        }
+    }
+
     public function storeGenerated(string $bytes, string $name, string $mime, string $folder): Fichier
     {
         $fichier = (new Fichier())->setPath($folder)->setVisibilite(Fichier::PRIVE)->setRawContent($bytes, $name, $mime);

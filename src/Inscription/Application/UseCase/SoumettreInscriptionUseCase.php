@@ -74,6 +74,10 @@ class SoumettreInscriptionUseCase
         if ($categorie === null || $categorie->getColloque()->getId() !== $colloque->getId()) {
             throw new BadRequestHttpException('Catégorie de participant invalide.');
         }
+        $acceptes = array_column($colloque->getCanauxPaiement(), 'code');
+        if ($acceptes !== [] && !in_array($canal->value, $acceptes, true)) {
+            throw new BadRequestHttpException('Ce mode de paiement n\'est pas accepté pour cet événement.');
+        }
         if ($this->users->findByEmail($data['email']) !== null) {
             throw new ConflictHttpException('Un compte existe déjà avec cette adresse e-mail. Connectez-vous pour suivre votre inscription.');
         }

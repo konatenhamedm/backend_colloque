@@ -5,68 +5,98 @@ namespace App\Colloque\Infrastructure\Seed;
 use App\Colloque\Domain\Entity\AxeThematique;
 use App\Colloque\Domain\Entity\CategorieParticipant;
 use App\Colloque\Domain\Entity\Colloque;
-use App\Inscription\Domain\Enum\CanalPaiement;
+use App\Colloque\Domain\Entity\ColloqueItem;
 
 /**
- * Contenu initial du colloque (affiche PTRC-GD). Partagé par :
- *  - les fixtures de démo (dev) ;
- *  - la commande `app:seed-colloque` (production : crée le colloque s'il n'existe pas, sans rien effacer).
+ * Contenu initial : 3ᵉ Forum des Jeunes Chercheurs en Géographie (FJCG), 26 novembre 2026, UFHB.
+ * Aucune image ici (dépôt public) : photos, logos et signatures se téléversent depuis Admin → Paramètres.
+ * Partagé par les fixtures de démo et par la commande `app:seed-colloque` (production).
  */
 class ColloqueSeeder
 {
+    /** À incrémenter si ce contenu change : l'ancien contenu non modifié par un admin est alors remplacé (si aucune inscription). */
+    public const SEED_KEY = 'fjcg-2026-v1';
+
     public function build(): Colloque
     {
         $c = (new Colloque())
-            ->setTitre('Colloque international du Programme Thématique de Recherche du CAMES — Gouvernance et Développement (PTRC-GD)')
-            ->setSousTitre('Appel à communication')
-            ->setTheme('Le dialogue entre les sciences au service de la gouvernance et du développement durable de l\'Afrique')
-            ->setDateDebut(new \DateTimeImmutable('2027-03-17'))->setDateFin(new \DateTimeImmutable('2027-03-19'))
-            ->setLieu('Université Internationale ICK de Bouaké (Côte d\'Ivoire)')
-            ->setModalite('En présentiel et en distanciel')
-            ->setDateLimiteCommunication(new \DateTimeImmutable('2026-10-10'))
-            ->setDateLimitePaiement(new \DateTimeImmutable('2027-01-20'))
+            ->setTitre('Forum des Jeunes Chercheurs en Géographie (FJCG)')
+            ->setSousTitre('3ᵉ édition')
+            ->setTheme('De la visibilité scientifique à la valorisation et à l\'innovation de la recherche universitaire')
+            ->setDateDebut(new \DateTimeImmutable('2026-11-26'))->setDateFin(new \DateTimeImmutable('2026-11-26'))
+            ->setHeures('08h00 – 16h00')
+            ->setLieu('Auditorium de l\'UFHB, Abidjan')
+            ->setModalite(null)
+            ->setCibles(['Étudiants (Master et Thèse)', 'Enseignants-Chercheurs', 'Chercheurs'])
+            ->setDateLimitePaiement(new \DateTimeImmutable('2026-11-25'))
+            ->setDateLimiteCommunication(new \DateTimeImmutable('2026-11-25'))
+            ->setAvantages(['Déjeuner', 'Diplôme de participation'])
             ->setCalendrier([
-                ['ordre' => 1, 'libelle' => 'Diffusion de l\'appel', 'date' => '09 août 2026'],
-                ['ordre' => 2, 'libelle' => 'Envoi des propositions de communication (résumés et 5 mots-clés en anglais et en français, de 200 à 300 mots)', 'date' => 'Du 09 août au 10 octobre 2026'],
-                ['ordre' => 3, 'libelle' => 'Réponses aux auteurs après sélection', 'date' => 'Du 31 octobre au 20 novembre 2026'],
-                ['ordre' => 4, 'libelle' => 'Envoi des résumés définitifs pour le livre des résumés du colloque', 'date' => '20 novembre 2026'],
-                ['ordre' => 5, 'libelle' => 'Paiement des frais de participation', 'date' => 'Du 20 novembre 2026 au 20 janvier 2027'],
-                ['ordre' => 6, 'libelle' => 'Les normes d\'édition et bibliographiques recommandées sont celles du CAMES (NORCAMES)', 'date' => 'Téléchargeables en ligne'],
+                ['ordre' => 1, 'libelle' => 'Date limite de paiement des frais de participation', 'date' => '25 novembre 2026'],
+                ['ordre' => 2, 'libelle' => 'Forum : leçon inaugurale et sessions par axe', 'date' => '26 novembre 2026 · 08h00 – 16h00'],
             ])
-            ->setAvantages(['Figuration dans le livre des résumés du colloque', 'Attestation de participation', 'Pauses-café et repas', 'Kit du participant', 'Visite touristique'])
             ->setContacts([
-                'email' => 'colloque2ptrgdbke@yahoo.com',
-                'telephones' => ['(+225) 0103593436', '(+241) 66082694'],
-                'beneficiaires' => [
-                    ['nom' => 'KOUASSI Moulo Elysée Landry', 'telephones' => ['07 57 03 03 78', '05 56 97 16 20']],
-                    ['nom' => 'ASSAHON Ahou Anne-Naïdée', 'telephones' => ['07 47 37 95 32']],
+                'email' => 'ksanaliou@yahoo.fr',
+                'telephones' => ['(+225) 07 77 33 27 20', '(+225) 07 07 90 32 02', '(+225) 07 07 96 31 15'],
+                'personnes' => [
+                    ['nom' => 'Dr KOUASSI Gilbert', 'telephone' => '(+225) 07 77 33 27 20', 'email' => 'gilbertini2006@yahoo.fr'],
+                    ['nom' => 'Dr DIABAGATE Abou', 'telephone' => '(+225) 07 07 90 32 02', 'email' => 'aboudiaba76@yahoo.fr'],
+                    ['nom' => 'Dr KAMAGATE Sanaliou', 'telephone' => '(+225) 07 07 96 31 15', 'email' => 'ksanaliou@yahoo.fr'],
                 ],
-                'organisateurs' => ['CAMES', 'Groupe ICK Bouaké'],
+                'beneficiaires' => [], // ancien format (compatibilité avec l'ancien front pendant le déploiement)
+                'organisateurs' => ['Université Félix Houphouët-Boigny', 'Institut de Géographie Tropicale · ERESP'],
             ])
-            ->setCanauxPaiement(array_map(fn (CanalPaiement $c) => [
-                'code' => $c->value,
-                'libelle' => $c->label(),
-                'instructions' => 'Effectuez le transfert vers l\'un des bénéficiaires indiqués, puis saisissez la référence de la transaction et joignez la capture ou le reçu. Les frais ne sont pas remboursables.',
-            ], [CanalPaiement::WAVE, CanalPaiement::ORANGE_MONEY, CanalPaiement::MOOV_MONEY, CanalPaiement::WESTERN_UNION, CanalPaiement::RIA, CanalPaiement::MONEYGRAM]))
-            // PLACEHOLDERS : à remplacer par les 4 intervenants réels (nom, titre, URL de photo).
-            ->setIntervenants([
-                ['nom' => 'Intervenant 1', 'titre' => 'Fonction / institution', 'photo' => null],
-                ['nom' => 'Intervenant 2', 'titre' => 'Fonction / institution', 'photo' => null],
-                ['nom' => 'Intervenant 3', 'titre' => 'Fonction / institution', 'photo' => null],
-                ['nom' => 'Intervenant 4', 'titre' => 'Fonction / institution', 'photo' => null],
+            ->setComite([
+                ['role' => 'Président du Comité d\'Organisation', 'nom' => 'Dr KAMAGATE Sanaliou', 'details' => 'Maître de Conférences'],
+                ['role' => '1er Vice-président', 'nom' => 'Dr KOUASSI Gilbert', 'details' => 'Maître de Conférences'],
+                ['role' => '2ème Vice-président', 'nom' => 'Dr (MC) BRENOUM Kouakou David', 'details' => 'UFHB, IGT / ERESP, Abidjan'],
+                ['role' => 'Secrétaire général', 'nom' => 'Dr DIABAGATE Abou', 'details' => 'Maître de Conférences'],
+                ['role' => 'Secrétaire général adjoint', 'nom' => 'Dre (MC) DIHOUEGBEU Déagai Parfaite', 'details' => 'UFHB, IGT / ERESP'],
+                ['role' => 'Trésorière', 'nom' => 'Dr (MC) ADOU Gnangoran Alida Thérèse', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Trésorière adjointe', 'nom' => 'Dre YAO Affoua Marie Rose', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Responsable du protocole et de l\'accueil', 'nom' => 'Dr (MC) KOBENAN Appoh Charlesbor', 'details' => 'UFHB, IGT / ERESP'],
+                ['role' => 'Responsable adjoint du protocole et de l\'accueil', 'nom' => 'Dr (MC) WADJA Jean-Bérenger', 'details' => 'UFHB, IGT, ERESP / CAPDEV, Abidjan'],
+                ['role' => 'Responsable de la logistique', 'nom' => 'Dr (MC) GOZE Thomas', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Responsable adjoint de la logistique', 'nom' => 'Dre GOORE Lou Binhué Juliana', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Maître de cérémonie', 'nom' => 'Doctorant KACOU Anoh Blaise', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Maître de cérémonie adjoint', 'nom' => 'Doctorant KOFFI Koua Koffi Etienne Trésor', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
+                ['role' => 'Responsable de la sécurité', 'nom' => 'Dr EVIAR Ohomon Bernard', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
             ])
-            ->setDocuments([
-                ['titre' => 'Termes de référence (TDR)', 'description' => 'Argumentaire scientifique, axes et modalités de soumission.', 'url' => null],
-                ['titre' => 'Normes d\'édition NORCAMES', 'description' => 'Normes d\'édition et bibliographiques recommandées par le CAMES.', 'url' => null],
-            ]);
+            ->setCanauxPaiement([
+                ['code' => 'ORANGE_MONEY', 'libelle' => 'Orange Money', 'numeros' => ['07 07 65 69 25', '07 07 66 58 21'],
+                    'instructions' => 'Envoyez les frais de participation (10 000 FCFA) à l\'un de ces numéros Orange Money avant le 25 novembre 2026.'],
+                ['code' => 'WAVE', 'libelle' => 'Wave', 'numeros' => ['07 07 65 69 25', '01 52 01 25 70'],
+                    'instructions' => 'Envoyez les frais de participation (10 000 FCFA) à l\'un de ces numéros Wave avant le 25 novembre 2026.'],
+            ])
+            ->setDocuments([])
+            ->setSeedKey(self::SEED_KEY);
 
-        foreach ([['GU', 'Gouvernance universitaire'], ['GP', 'Gouvernance politique'], ['GSE', 'Gouvernance socioéconomique'],
-            ['GH', 'Gouvernance hospitalière'], ['GTE', 'Gouvernance territoriale et environnementale'], ['GG', 'Gouvernance et genre']] as $i => [$code, $lib]) {
-            $c->addAxe((new AxeThematique())->setCode($code)->setLibelle($lib)->setOrdre($i + 1));
+        foreach ([['AXE1', 'Axe 1'], ['AXE2', 'Axe 2'], ['AXE3', 'Axe 3']] as $i => [$code, $lib]) {
+            $c->addAxe((new AxeThematique())->setCode($code)->setLibelle($lib.' (intitulé à préciser)')->setOrdre($i + 1));
         }
-        foreach ([['ENSEIGNANT_CHERCHEUR', 'Enseignants-Chercheurs et Chercheurs', 40000], ['ETUDIANT_DOCTORANT', 'Étudiants / Doctorants', 15000], ['AUTRE', 'Autres participants', 30000]] as $i => [$code, $lib, $m]) {
-            $c->addCategorie((new CategorieParticipant())->setCode($code)->setLibelle($lib)->setMontant($m)->setOrdre($i + 1));
+        foreach ([['ETUDIANT', 'Étudiant (Master / Thèse)'], ['ENSEIGNANT_CHERCHEUR', 'Enseignant-Chercheur'], ['CHERCHEUR', 'Chercheur']] as $i => [$code, $lib]) {
+            $c->addCategorie((new CategorieParticipant())->setCode($code)->setLibelle($lib)->setMontant(10000)->setOrdre($i + 1));
         }
+
+        // Animateurs de session (photos : à téléverser depuis Admin → Paramètres → Animateurs)
+        foreach ([
+            ['Leçon inaugurale', 'Pr Antoine Hauhouot Asseypo', 'Président honoraire de l\'UFHB · Président honoraire de l\'ASCAD'],
+            ['Axe 1', 'Pr Jean-Marie Kouakou', 'Directeur de l\'École doctorale Sociétés, Communication, Arts, Lettres et Langues (SCALL) de l\'UFHB'],
+            ['Axe 2', 'Dre Annette Ouattara', 'Directrice des Études, du Renforcement des Capacités et des Partenariats au Fonds pour la Science, la Technologie et l\'Innovation (FONSTI)'],
+            ['Axe 3', 'Pr Mamoutou Touré', 'Chef du département de géographie – IGT, UFHB'],
+        ] as $i => [$role, $nom, $titre]) {
+            $c->addItem((new ColloqueItem())->setType(ColloqueItem::INTERVENANT)->setRole($role)->setNom($nom)->setTitre($titre)->setOrdre($i + 1));
+        }
+        // Signatures du reçu / de l'attestation (image : à téléverser)
+        $c->addItem((new ColloqueItem())->setType(ColloqueItem::SIGNATAIRE)->setRole('Le Responsable')->setNom('KAMAGATE Sanaliou')
+            ->setTitre('Maître de Conférences, UFHB-IGT')->setDetails('ksanaliou@yahoo.fr')->setOrdre(1));
+        $c->addItem((new ColloqueItem())->setType(ColloqueItem::SIGNATAIRE)->setRole('La Trésorière')->setNom('ADOU Gnangoran Alida Thérèse')
+            ->setTitre('Maître de Conférences, UFHB / IGT, ERESP')->setDetails('07 07 65 69 25 / 01 52 01 25 70 · agathe_n77@yahoo.fr')->setOrdre(2));
+        // Logos (images : à téléverser)
+        foreach ([['Université Félix Houphouët-Boigny', 'UFHB'], ['Institut de Géographie Tropicale', 'IGT'], ['Équipe de Recherche Espace, Système et Prospective', 'ERESP']] as $i => [$nom, $role]) {
+            $c->addItem((new ColloqueItem())->setType(ColloqueItem::PARTENAIRE)->setNom($nom)->setRole($role)->setOrdre($i + 1));
+        }
+
         return $c;
     }
 }

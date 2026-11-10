@@ -33,6 +33,10 @@ class CorrigerPaiementUseCase
             throw new BadRequestHttpException('Seule une inscription rejetée peut être corrigée.');
         }
         $canal = CanalPaiement::tryFrom((string) ($data['canal'] ?? '')) ?? throw new BadRequestHttpException('Canal de paiement inconnu.');
+        $acceptes = array_column($inscription->getColloque()->getCanauxPaiement(), 'code');
+        if ($acceptes !== [] && !in_array($canal->value, $acceptes, true)) {
+            throw new BadRequestHttpException('Ce mode de paiement n\'est pas accepté pour cet événement.');
+        }
         $reference = trim((string) ($data['reference'] ?? ''));
         if ($reference === '' && $justificatif === null) {
             throw new BadRequestHttpException('Indiquez la référence de la transaction ou joignez le reçu de paiement.');

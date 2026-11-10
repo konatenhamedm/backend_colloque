@@ -26,7 +26,7 @@ class Attestation
     #[ORM\JoinColumn(nullable: false, unique: true)]
     private Inscription $inscription;
 
-    /** N° lisible imprimé sur le diplôme, ex. PTRCGD-2027-00012 */
+    /** N° lisible imprimé sur le diplôme, ex. FJCG-2026-00012 */
     #[ORM\Column(length: 40, unique: true)]
     #[Groups(['attestation:read'])]
     private string $numero = '';
