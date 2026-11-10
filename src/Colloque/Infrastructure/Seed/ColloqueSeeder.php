@@ -83,7 +83,7 @@ class ColloqueSeeder
         foreach ([
             ['Leçon inaugurale', 'Pr Antoine Hauhouot Asseypo', 'Président honoraire de l\'UFHB · Président honoraire de l\'ASCAD'],
             ['Axe 1', 'Pr Jean-Marie Kouakou', 'Directeur de l\'École doctorale Sociétés, Communication, Arts, Lettres et Langues (SCALL) de l\'UFHB'],
-            ['Axe 2', 'Dre Annette Ouattara', 'Directrice des Études, du Renforcement des Capacités et des Partenariats au Fonds pour la Science, la Technologie et l\'Innovation (FONSTI)'],
+            ['Axe 2', 'Pr Arnaud Kevin Dayoro', 'Membre du conseil scientifique du FONSTI'],
             ['Axe 3', 'Pr Mamoutou Touré', 'Chef du département de géographie – IGT, UFHB'],
         ] as $i => [$role, $nom, $titre]) {
             $c->addItem((new ColloqueItem())->setType(ColloqueItem::INTERVENANT)->setRole($role)->setNom($nom)->setTitre($titre)->setOrdre($i + 1));

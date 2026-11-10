@@ -3,6 +3,7 @@
 namespace App\Colloque\UI\Command;
 
 use App\Colloque\Domain\Repository\ColloqueRepositoryInterface;
+use App\Colloque\Infrastructure\Seed\AnimateurPatches;
 use App\Colloque\Infrastructure\Seed\ColloqueSeeder;
 use App\Colloque\Infrastructure\Seed\SeedImageImporter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,6 +20,7 @@ class SeedColloqueCommand extends Command
         private readonly ColloqueRepositoryInterface $colloques,
         private readonly EntityManagerInterface $em,
         private readonly SeedImageImporter $photos,
+        private readonly AnimateurPatches $patches,
     ) {
         parent::__construct();
     }
@@ -36,6 +38,12 @@ class SeedColloqueCommand extends Command
             $io->success('Colloque initial créé.');
             return Command::SUCCESS;
         }
+
+        // Corrections de contenu ponctuelles (idempotentes), même si la configuration a été modifiée depuis les Paramètres.
+        foreach ($this->patches->appliquer($current) as $fait) {
+            $io->writeln('✔ '.$fait);
+        }
+        $this->em->flush();
 
         $key = $current->getSeedKey();
         // « custom » : un administrateur a modifié la configuration -> jamais touché.

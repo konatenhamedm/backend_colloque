@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 class SeedImageImporter
 {
     /** rôle de l'animateur -> fichier */
-    public const PHOTOS = ['Leçon inaugurale' => 'hauhouot.jpg', 'Axe 1' => 'kouakou.jpg', 'Axe 2' => 'ouattara.jpg', 'Axe 3' => 'toure.jpg'];
+    public const PHOTOS = ['Leçon inaugurale' => 'hauhouot.jpg', 'Axe 1' => 'kouakou.jpg', 'Axe 2' => 'dayoro.jpg', 'Axe 3' => 'toure.jpg'];
 
     public function __construct(
         private readonly EntityManagerInterface $em,
