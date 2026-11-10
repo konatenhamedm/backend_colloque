@@ -37,8 +37,10 @@ jobs:
             exit 0
           fi
           printf '%s\n' "$ENV_LOCAL" | sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
-            mkdir -p $TARGET_DIR && cat > $TARGET_DIR/.env.local && chmod 600 $TARGET_DIR/.env.local"
-          echo "✅ .env.local écrit sur le serveur (permissions 600)"
+            mkdir -p $TARGET_DIR && cat > $TARGET_DIR/.env.local && \\
+            sed -i '/^FRONT_URL=/d' $TARGET_DIR/.env.local && echo 'FRONT_URL=${SCHEME}://forum.instapoint.site' >> $TARGET_DIR/.env.local && \\
+            chmod 600 $TARGET_DIR/.env.local"
+          echo "✅ .env.local écrit sur le serveur (permissions 600) ; FRONT_URL = ${SCHEME}://forum.instapoint.site (suit la variable USE_HTTPS)"
 
       - name: Vérifier la configuration de production (avant toute modification)
         run: |
