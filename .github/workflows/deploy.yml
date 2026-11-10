@@ -19,8 +19,8 @@ jobs:
       TARGET_DIR: /var/www/backforum.instapoint.site/web
       # Binaire PHP du serveur (le projet est aligné sur PHP 8.2, comme Educ360 ; mettre php8.3 / php8.4 si le site change de version).
       PHP_BIN: php
-      # Certificats SSL pas encore actifs : HTTP par défaut. Quand ils le sont : variable de dépôt USE_HTTPS=true.
-      SCHEME: ${{ vars.USE_HTTPS == 'true' && 'https' || 'http' }}
+      # Certificats SSL actifs : HTTPS par défaut. Pour repasser temporairement en HTTP : variable de dépôt USE_HTTPS=false
+      SCHEME: ${{ vars.USE_HTTPS == 'false' && 'http' || 'https' }}
 
     steps:
       - uses: actions/checkout@v4
