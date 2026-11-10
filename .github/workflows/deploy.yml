@@ -46,6 +46,7 @@ jobs:
 
       - name: Vérifier la configuration de production (avant toute modification)
         run: |
+          set -o pipefail
           sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 -o ServerAliveInterval=15 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
             cd $TARGET_DIR || { echo '❌ Dossier $TARGET_DIR introuvable'; exit 1; }
             command -v $PHP_BIN >/dev/null && $PHP_BIN -r 'exit(PHP_VERSION_ID >= 80200 ? 0 : 1);' || { echo '❌ $PHP_BIN (PHP >= 8.2) introuvable sur le serveur'; exit 1; }
@@ -62,7 +63,8 @@ jobs:
               echo '❌ JWT_SECRET/APP_SECRET sont encore des valeurs de développement'; exit 1
             fi
             echo '✅ Configuration de production valide'
-          "
+          " > /tmp/preflight.txt 2>&1 || { cat /tmp/preflight.txt; msg=$(awk 'BEGIN{ORS="%0A"}{print}' /tmp/preflight.txt); echo "::error title=Configuration de production invalide::$msg"; exit 1; }
+          cat /tmp/preflight.txt
 
       - name: Vérifier la connexion à la base de données (depuis le serveur)
         run: |
