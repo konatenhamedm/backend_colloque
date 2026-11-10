@@ -28,6 +28,7 @@ class DeleteColloqueItemUseCase
         $colloque->removeItem($item);
         $this->em->remove($item);
         $this->storage->remove($image);
+        $colloque->setSeedKey('custom'); // modifié par un administrateur : le contenu initial n'y touchera plus
         $this->em->flush();
     }
 }

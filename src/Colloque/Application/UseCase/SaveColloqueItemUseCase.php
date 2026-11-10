@@ -63,6 +63,7 @@ class SaveColloqueItemUseCase
             $this->storage->remove($old);
         }
 
+        $colloque->setSeedKey('custom'); // modifié par un administrateur : le contenu initial n'y touchera plus
         $this->em->flush();
         return $item;
     }

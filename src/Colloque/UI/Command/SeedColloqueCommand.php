@@ -4,6 +4,7 @@ namespace App\Colloque\UI\Command;
 
 use App\Colloque\Domain\Repository\ColloqueRepositoryInterface;
 use App\Colloque\Infrastructure\Seed\ColloqueSeeder;
+use App\Colloque\Infrastructure\Seed\SeedImageImporter;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,6 +18,7 @@ class SeedColloqueCommand extends Command
     public function __construct(
         private readonly ColloqueRepositoryInterface $colloques,
         private readonly EntityManagerInterface $em,
+        private readonly SeedImageImporter $photos,
     ) {
         parent::__construct();
     }
@@ -27,7 +29,9 @@ class SeedColloqueCommand extends Command
         $current = $this->colloques->findCurrent();
 
         if ($current === null) {
-            $this->em->persist((new ColloqueSeeder())->build());
+            $nouveau = (new ColloqueSeeder())->build();
+            $this->photos->importPhotos($nouveau);
+            $this->em->persist($nouveau);
             $this->em->flush();
             $io->success('Colloque initial créé.');
             return Command::SUCCESS;
@@ -36,8 +40,15 @@ class SeedColloqueCommand extends Command
         $key = $current->getSeedKey();
         // « custom » : un administrateur a modifié la configuration -> jamais touché.
         // Même version : rien à faire.
-        if ($key === 'custom' || $key === ColloqueSeeder::SEED_KEY) {
+        if ($key === 'custom') {
             $io->writeln('Colloque déjà configuré : rien à faire.');
+            return Command::SUCCESS;
+        }
+        if ($key === ColloqueSeeder::SEED_KEY) {
+            // Contenu initial à jour, pas encore modifié par un admin : on complète seulement les photos manquantes.
+            $n = $this->photos->importPhotos($current);
+            $this->em->flush();
+            $io->writeln($n > 0 ? sprintf('%d photo(s) d\'animateur importée(s).', $n) : 'Colloque déjà configuré : rien à faire.');
             return Command::SUCCESS;
         }
 
@@ -52,7 +63,9 @@ class SeedColloqueCommand extends Command
         $this->em->wrapInTransaction(function () use ($current) {
             $this->em->remove($current);
             $this->em->flush();
-            $this->em->persist((new ColloqueSeeder())->build());
+            $nouveau = (new ColloqueSeeder())->build();
+            $this->photos->importPhotos($nouveau);
+            $this->em->persist($nouveau);
         });
         $io->success('Ancien contenu initial remplacé par « '.ColloqueSeeder::SEED_KEY.' » (aucune inscription n\'était concernée).');
         return Command::SUCCESS;
