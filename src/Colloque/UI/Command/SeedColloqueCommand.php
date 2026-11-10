@@ -3,7 +3,7 @@
 namespace App\Colloque\UI\Command;
 
 use App\Colloque\Domain\Repository\ColloqueRepositoryInterface;
-use App\Colloque\Infrastructure\Seed\AnimateurPatches;
+use App\Colloque\Infrastructure\Seed\ContentPatches;
 use App\Colloque\Infrastructure\Seed\ColloqueSeeder;
 use App\Colloque\Infrastructure\Seed\SeedImageImporter;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,7 +20,7 @@ class SeedColloqueCommand extends Command
         private readonly ColloqueRepositoryInterface $colloques,
         private readonly EntityManagerInterface $em,
         private readonly SeedImageImporter $photos,
-        private readonly AnimateurPatches $patches,
+        private readonly ContentPatches $patches,
     ) {
         parent::__construct();
     }

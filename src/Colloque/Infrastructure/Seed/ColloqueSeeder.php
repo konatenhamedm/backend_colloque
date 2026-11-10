@@ -15,6 +15,8 @@ use App\Colloque\Domain\Entity\ColloqueItem;
 class ColloqueSeeder
 {
     /** À incrémenter si ce contenu change : l'ancien contenu non modifié par un admin est alors remplacé (si aucune inscription). */
+    public const SLOGAN = 'La recherche se découvre, se partage et se construit ensemble !';
+    public const AVANTAGES = ['Attestation de participation', 'Comprendre le parcours doctoral', 'Découvrir la recherche scientifique', 'Rencontrer des acteurs du monde scientifique'];
     public const SEED_KEY = 'fjcg-2026-v1';
 
     public function build(): Colloque
@@ -31,11 +33,9 @@ class ColloqueSeeder
             ->setCibles(['Étudiants (Master et Thèse)', 'Enseignants-Chercheurs', 'Chercheurs'])
             ->setDateLimitePaiement(new \DateTimeImmutable('2026-11-25'))
             ->setDateLimiteCommunication(new \DateTimeImmutable('2026-11-25'))
-            ->setAvantages(['Attestation de participation'])
-            ->setCalendrier([
-                ['ordre' => 1, 'libelle' => 'Date limite de paiement des frais de participation', 'date' => '25 novembre 2026'],
-                ['ordre' => 2, 'libelle' => 'Forum : leçon inaugurale et sessions par axe', 'date' => '26 novembre 2026 · 08h00 – 16h00'],
-            ])
+            ->setSlogan(self::SLOGAN)
+            ->setAvantages(self::AVANTAGES)
+            ->setCalendrier([])
             ->setContacts([
                 'email' => 'ksanaliou@yahoo.fr',
                 'telephones' => ['(+225) 07 77 33 27 20', '(+225) 07 07 90 32 02', '(+225) 07 07 96 31 15'],

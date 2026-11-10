@@ -32,6 +32,7 @@ class UpdateColloqueUseCase
             if (array_key_exists('theme', $d)) { $c->setTheme($this->required($d['theme'], 'Le thème')); }
             if (array_key_exists('lieu', $d)) { $c->setLieu($this->required($d['lieu'], 'Le lieu')); }
             if (array_key_exists('heures', $d)) { $c->setHeures($this->nullable($d['heures'])); }
+            if (array_key_exists('slogan', $d)) { $c->setSlogan($this->nullable($d['slogan'])); }
             if (array_key_exists('prixRepas', $d)) {
                 $v = $d['prixRepas'];
                 if ($v !== null && $v !== '' && (filter_var($v, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]) === false)) {

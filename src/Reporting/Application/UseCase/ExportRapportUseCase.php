@@ -47,7 +47,7 @@ class ExportRapportUseCase
             $rows[] = [count($rows) + 1, $u->getNom(), $u->getPrenom(), $ins->getInstitution(), $ins->getCategorie()->getLibelle(),
                 $ins->getTypeParticipation()->label(), $u->getEmail(), $u->getTelephone(), $ins->getStatut()->label(), $ins->hasRepas() ? 'Oui' : 'Non', $ins->hasPresence() ? 'Présent' : '', ''];
         }
-        return ['headers' => ['N°', 'Nom', 'Prénom', 'Institution', 'Catégorie', 'Type', 'E-mail', 'Téléphone', 'Statut', 'Repas', 'Présence', 'Signature'], 'rows' => $rows];
+        return ['headers' => ['N°', 'Nom', 'Prénom', 'Institution', 'Catégorie', 'Type', 'E-mail', 'Téléphone', 'Statut', 'Déjeuner', 'Présence', 'Signature'], 'rows' => $rows];
     }
 
     private function paiementsSheet(): array

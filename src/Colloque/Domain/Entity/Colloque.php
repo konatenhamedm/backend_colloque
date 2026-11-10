@@ -79,6 +79,11 @@ class Colloque
     #[Groups(['colloque:read'])]
     private ?string $heures = null;
 
+    /** Slogan affiché en bas de la page d'accueil et du reçu. */
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['colloque:read'])]
+    private ?string $slogan = null;
+
     /** Prix du repas facultatif en FCFA ; null ou 0 = pas d'option repas. */
     #[ORM\Column(nullable: true)]
     #[Groups(['colloque:read'])]
@@ -167,6 +172,8 @@ class Colloque
     public function setContacts(array $v): self { $this->contacts = $v; return $this; }
     public function getCanauxPaiement(): array { return $this->canauxPaiement; }
     public function setCanauxPaiement(array $v): self { $this->canauxPaiement = $v; return $this; }
+    public function getSlogan(): ?string { return $this->slogan; }
+    public function setSlogan(?string $v): self { $this->slogan = $v; return $this; }
     public function getPrixRepas(): ?int { return $this->prixRepas; }
     public function setPrixRepas(?int $v): self { $this->prixRepas = $v !== null && $v > 0 ? $v : null; return $this; }
     public function getHeures(): ?string { return $this->heures; }

@@ -24,7 +24,7 @@ class DompdfRecuGenerator implements RecuGeneratorInterface
         $e = static fn (?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES);
         $numero = sprintf('REC-%d-%05d', $col->getAnnee(), $paiement->getId() ?? 0);
         $f = fn (int $n) => number_format($n, 0, ',', ' ').' FCFA';
-        $detail = 'Frais de participation : '.$f($ins->getCategorie()->getMontant()).($ins->hasRepas() ? '<br>Repas : '.$f($col->getPrixRepas() ?? 0) : '');
+        $detail = 'Frais de participation : '.$f($ins->getCategorie()->getMontant()).($ins->hasRepas() ? '<br>Déjeuner : '.$f($col->getPrixRepas() ?? 0) : '');
         $montant = number_format($paiement->getMontant(), 0, ',', ' ').' FCFA';
         $date = ($paiement->getTraiteAt() ?? new \DateTimeImmutable())->format('d/m/Y');
         $quand = $col->getDateDebut() == $col->getDateFin() ? $col->getDateDebut()->format('d/m/Y') : $col->getDateDebut()->format('d/m/Y').' au '.$col->getDateFin()->format('d/m/Y');
@@ -59,7 +59,8 @@ class DompdfRecuGenerator implements RecuGeneratorInterface
             $sigHtml .= '</tr></table>';
         }
 
-        $avantages = $col->getAvantages() !== [] ? 'Ces frais donnent droit à : '.$e(implode(', ', array_map('mb_strtolower', $col->getAvantages()))).'. ' : '';
+        $slogan = $col->getSlogan() ? '<div style="margin-top:14px;text-align:center;font-size:12px;font-weight:bold;color:#1b2a6b;font-style:italic;">'.$e($col->getSlogan()).'</div>' : '';
+        $avantages = $col->getAvantages() !== [] ? 'Avantages de participation : '.$e(implode(', ', array_map('mb_strtolower', $col->getAvantages()))).'. ' : '';
         $titre = $e($col->getTitre()).($col->getSousTitre() ? ' — '.$e($col->getSousTitre()) : '');
 
         $html = <<<HTML
@@ -97,6 +98,7 @@ table.rows td:first-child { color: #5b6b86; width: 38%; }
   <div class="total">{$e($montant)}</div>
   <div style="text-align:right"><span class="paid">PAYÉ</span></div>
   {$sigHtml}
+  {$slogan}
   <div class="foot">{$avantages}Document à imprimer et à présenter à l'accueil le jour de l'événement. Les frais de participation ne sont pas remboursables.</div>
 </div>
 </body></html>
