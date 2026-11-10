@@ -125,6 +125,19 @@ check("login avec le mot de passe choisi + mauvais mdp refusé", bool(zoe) and l
 print("# Sécurité / compte restreint")
 check("sans jeton -> 401", call("GET", "/admin/stats")[0] == 401)
 check("participant sur /admin -> 403", call("GET", "/admin/stats", zoe)[0] == 403)
+
+print("# Liens d'inscription (1 h)")
+check("liens: participant -> 403, sans jeton -> 401", call("GET", "/admin/liens-inscription", zoe)[0] == 403 and call("GET", "/admin/liens-inscription")[0] == 401)
+call("POST", "/auth/inscription/demarrer", json_body={"email": "perdu@exemple.ci"})
+s, d = call("GET", "/admin/liens-inscription", adm)
+lk = [x for x in (d.get("data") or []) if x["email"] == "perdu@exemple.ci"]
+check("lien d'inscription conservé et visible au back-office", s == 200 and len(lk) == 1 and "/inscription?token=" in lk[0]["lien"], str(d)[:200])
+tk = lk[0]["lien"].split("token=")[1] if lk else "x"
+check("le lien retrouvé est valide", call("GET", f"/auth/inscription/verifier?token={tk}")[1].get("data", {}).get("email") == "perdu@exemple.ci")
+s, d = call("POST", "/admin/liens-inscription", adm, json_body={"email": "nouveau-lien@exemple.ci", "envoyer": False})
+check("génération d'un lien pour une adresse", s == 200 and "token=" in d["data"]["lien"], str(d)[:200])
+check("génération refusée si compte existant", call("POST", "/admin/liens-inscription", adm, json_body={"email": "zoe.test@exemple.ci"})[0] == 422)
+check("génération refusée si e-mail invalide", call("POST", "/admin/liens-inscription", adm, json_body={"email": "nop"})[0] == 422)
 s, d = call("GET", "/espace/ressources", zoe)
 check("compte restreint : ressources -> 403", s == 403, d.get("message", ""))
 check("compte restreint : dépôt de travaux -> 403", call("POST", "/espace/communications", zoe, fields={})[0] == 403)
