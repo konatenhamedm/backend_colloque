@@ -7,7 +7,7 @@
     <strong>Participant :</strong> {{ inscription.utilisateur.nomComplet }} ({{ inscription.utilisateur.email }})<br>
     <strong>Institution :</strong> {{ inscription.institution }}<br>
     <strong>Catégorie :</strong> {{ inscription.categorie.libelle }}<br>
-    <strong>Montant attendu :</strong> {{ inscription.categorie.montant|number_format(0, ',', ' ') }} FCFA
+    <strong>Montant attendu :</strong> {{ inscription.montantTotal|number_format(0, ',', ' ') }} FCFA{% if inscription.repas %} <span style="color:#5b6b86;">(dont repas : {{ inscription.colloque.prixRepas|number_format(0, ',', ' ') }} FCFA)</span>{% endif %}
     {% if paiement %}<br><strong>Canal :</strong> {{ paiement.canal.label }}<br>
     <strong>Référence :</strong> {{ paiement.reference ?? 'non renseignée' }}<br>
     <strong>Reçu joint :</strong> {{ paiement.justificatif ? 'oui' : 'non' }}{% endif %}

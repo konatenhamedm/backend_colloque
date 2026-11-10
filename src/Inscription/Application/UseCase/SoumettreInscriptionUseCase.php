@@ -93,11 +93,12 @@ class SoumettreInscriptionUseCase
 
         $inscription = (new Inscription())
             ->setUtilisateur($user)->setColloque($colloque)->setCategorie($categorie)
-            ->setTypeParticipation($type)->setInstitution($data['institution'])->setPays($data['pays'] ?? null);
+            ->setTypeParticipation($type)->setInstitution($data['institution'])->setPays($data['pays'] ?? null)
+            ->setRepas(filter_var($data['repas'] ?? false, FILTER_VALIDATE_BOOLEAN));
 
         $paiement = (new Paiement())
             ->setCanal($canal)->setReference($reference)
-            ->setMontant($categorie->getMontant()) // le montant vient de la catégorie, pas du client
+            ->setMontant($inscription->getMontantTotal()) // le montant vient de la catégorie (+ repas), pas du client
             ->setJustificatif($justificatif !== null ? $this->storage->storeJustificatif($justificatif) : null);
         $inscription->addPaiement($paiement);
 

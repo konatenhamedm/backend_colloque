@@ -25,12 +25,13 @@ class ColloqueSeeder
             ->setTheme('De la visibilité scientifique à la valorisation et à l\'innovation de la recherche universitaire')
             ->setDateDebut(new \DateTimeImmutable('2026-11-26'))->setDateFin(new \DateTimeImmutable('2026-11-26'))
             ->setHeures('08h00 – 16h00')
+            ->setPrixRepas(2000)
             ->setLieu('Auditorium de l\'UFHB, Abidjan')
             ->setModalite(null)
             ->setCibles(['Étudiants (Master et Thèse)', 'Enseignants-Chercheurs', 'Chercheurs'])
             ->setDateLimitePaiement(new \DateTimeImmutable('2026-11-25'))
             ->setDateLimiteCommunication(new \DateTimeImmutable('2026-11-25'))
-            ->setAvantages(['Déjeuner', 'Diplôme de participation'])
+            ->setAvantages(['Attestation de participation'])
             ->setCalendrier([
                 ['ordre' => 1, 'libelle' => 'Date limite de paiement des frais de participation', 'date' => '25 novembre 2026'],
                 ['ordre' => 2, 'libelle' => 'Forum : leçon inaugurale et sessions par axe', 'date' => '26 novembre 2026 · 08h00 – 16h00'],

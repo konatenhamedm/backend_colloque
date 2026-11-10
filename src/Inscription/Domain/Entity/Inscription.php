@@ -68,6 +68,11 @@ class Inscription
     #[Groups(['inscription:read'])]
     private bool $presence = false;
 
+    /** Repas facultatif choisi à l'inscription (le prix vient du colloque). */
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['inscription:read'])]
+    private bool $repas = false;
+
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     #[Groups(['inscription:read'])]
     private ?\DateTimeImmutable $valideAt = null;
@@ -88,6 +93,11 @@ class Inscription
     public function setUtilisateur(Utilisateur $u): self { $this->utilisateur = $u; return $this; }
     public function getColloque(): Colloque { return $this->colloque; }
     public function setColloque(Colloque $c): self { $this->colloque = $c; return $this; }
+    public function hasRepas(): bool { return $this->repas; }
+    public function setRepas(bool $v): self { $this->repas = $v && ($this->colloque->getPrixRepas() ?? 0) > 0; return $this; }
+    /** Frais de la catégorie + repas éventuel : c'est ce montant que le participant doit payer. */
+    #[Groups(['inscription:read'])]
+    public function getMontantTotal(): int { return $this->categorie->getMontant() + ($this->repas ? ($this->colloque->getPrixRepas() ?? 0) : 0); }
     public function getCategorie(): CategorieParticipant { return $this->categorie; }
     public function setCategorie(CategorieParticipant $c): self { $this->categorie = $c; return $this; }
     public function getTypeParticipation(): TypeParticipation { return $this->typeParticipation; }

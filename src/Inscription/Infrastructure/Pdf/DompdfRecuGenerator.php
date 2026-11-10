@@ -23,6 +23,8 @@ class DompdfRecuGenerator implements RecuGeneratorInterface
         $u = $ins->getUtilisateur();
         $e = static fn (?string $v): string => htmlspecialchars((string) $v, ENT_QUOTES);
         $numero = sprintf('REC-%d-%05d', $col->getAnnee(), $paiement->getId() ?? 0);
+        $f = fn (int $n) => number_format($n, 0, ',', ' ').' FCFA';
+        $detail = 'Frais de participation : '.$f($ins->getCategorie()->getMontant()).($ins->hasRepas() ? '<br>Repas : '.$f($col->getPrixRepas() ?? 0) : '');
         $montant = number_format($paiement->getMontant(), 0, ',', ' ').' FCFA';
         $date = ($paiement->getTraiteAt() ?? new \DateTimeImmutable())->format('d/m/Y');
         $quand = $col->getDateDebut() == $col->getDateFin() ? $col->getDateDebut()->format('d/m/Y') : $col->getDateDebut()->format('d/m/Y').' au '.$col->getDateFin()->format('d/m/Y');
@@ -87,6 +89,7 @@ table.rows td:first-child { color: #5b6b86; width: 38%; }
     <tr><td>Participant</td><td><strong>{$e($u->getNomComplet())}</strong></td></tr>
     <tr><td>Institution</td><td>{$e($ins->getInstitution())}</td></tr>
     <tr><td>Catégorie</td><td>{$e($ins->getCategorie()->getLibelle())}</td></tr>
+    <tr><td>Détail</td><td>{$detail}</td></tr>
     <tr><td>Mode de paiement</td><td>{$e($paiement->getCanal()->label())}</td></tr>
     <tr><td>Référence transaction</td><td>{$e($paiement->getReference() ?? '—')}</td></tr>
     <tr><td>Paiement validé le</td><td>{$e($date)}</td></tr>

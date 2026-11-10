@@ -115,6 +115,11 @@ check("référence seule (sans reçu) -> 201", s == 201 and d["data"]["inscripti
 s, tok3 = new_token("recu-seul@exemple.ci")
 s, d = call("POST", "/auth/inscription", fields={**f, "token": tok3, "reference": ""}, files={"justificatif": PROOF})
 check("reçu seul (sans référence) -> 201", s == 201 and d["data"]["inscription"]["dernierPaiement"]["reference"] is None, str(d)[:150])
+s, tok4 = new_token("repas@exemple.ci")
+check("le colloque public expose le prix du repas (2000)", col.get("prixRepas") == 2000, str(col.get("prixRepas")))
+s, d = call("POST", "/auth/inscription", fields={**f, "token": tok4, "reference": "REPAS1", "repas": "1"}, files={})
+ins = d.get("data", {}).get("inscription", {}) if s == 201 else {}
+check("inscription avec repas -> montant = catégorie + 2000", s == 201 and ins.get("repas") is True and ins["dernierPaiement"]["montant"] == cat["montant"] + 2000, str(d)[:200])
 s0, _ = call("POST", "/auth/inscription/demarrer", json_body={"email": "zoe.test@exemple.ci"})
 check("e-mail déjà inscrit -> même réponse 202 (pas d'énumération)", s0 == 202)
 

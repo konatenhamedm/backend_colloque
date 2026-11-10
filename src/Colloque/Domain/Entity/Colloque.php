@@ -79,6 +79,11 @@ class Colloque
     #[Groups(['colloque:read'])]
     private ?string $heures = null;
 
+    /** Prix du repas facultatif en FCFA ; null ou 0 = pas d'option repas. */
+    #[ORM\Column(nullable: true)]
+    #[Groups(['colloque:read'])]
+    private ?int $prixRepas = null;
+
     /** Publics visés (ex. « Étudiants (Master et Thèse) »). @var string[] */
     #[ORM\Column(type: 'json')]
     #[Groups(['colloque:read'])]
@@ -162,6 +167,8 @@ class Colloque
     public function setContacts(array $v): self { $this->contacts = $v; return $this; }
     public function getCanauxPaiement(): array { return $this->canauxPaiement; }
     public function setCanauxPaiement(array $v): self { $this->canauxPaiement = $v; return $this; }
+    public function getPrixRepas(): ?int { return $this->prixRepas; }
+    public function setPrixRepas(?int $v): self { $this->prixRepas = $v !== null && $v > 0 ? $v : null; return $this; }
     public function getHeures(): ?string { return $this->heures; }
     public function setHeures(?string $v): self { $this->heures = $v; return $this; }
     public function getCibles(): array { return $this->cibles; }

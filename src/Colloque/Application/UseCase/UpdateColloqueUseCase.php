@@ -32,6 +32,13 @@ class UpdateColloqueUseCase
             if (array_key_exists('theme', $d)) { $c->setTheme($this->required($d['theme'], 'Le thème')); }
             if (array_key_exists('lieu', $d)) { $c->setLieu($this->required($d['lieu'], 'Le lieu')); }
             if (array_key_exists('heures', $d)) { $c->setHeures($this->nullable($d['heures'])); }
+            if (array_key_exists('prixRepas', $d)) {
+                $v = $d['prixRepas'];
+                if ($v !== null && $v !== '' && (filter_var($v, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]) === false)) {
+                    throw new BadRequestHttpException('Le prix du repas doit être un entier en FCFA (0 ou vide = pas de repas).');
+                }
+                $c->setPrixRepas($v === null || $v === '' ? null : (int) $v);
+            }
             if (array_key_exists('modalite', $d)) { $c->setModalite($this->nullable($d['modalite'])); }
             if (array_key_exists('dateDebut', $d)) { $c->setDateDebut($this->date($d['dateDebut'], 'La date de début')); }
             if (array_key_exists('dateFin', $d)) { $c->setDateFin($this->date($d['dateFin'], 'La date de fin')); }

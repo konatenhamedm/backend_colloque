@@ -46,7 +46,7 @@ class CorrigerPaiementUseCase
         }
 
         $paiement = (new Paiement())->setCanal($canal)->setReference($reference)
-            ->setMontant($inscription->getCategorie()->getMontant())
+            ->setMontant($inscription->getMontantTotal())
             ->setJustificatif($justificatif !== null ? $this->storage->storeJustificatif($justificatif) : null);
         $inscription->soumettreNouveauPaiement($paiement);
         $this->em->flush();
