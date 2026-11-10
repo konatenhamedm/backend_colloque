@@ -5,6 +5,7 @@ namespace App\Inscription\UI\Controller;
 use App\Inscription\Application\UseCase\ListInscriptionsUseCase;
 use App\Inscription\Application\UseCase\ListPaiementsEnAttenteUseCase;
 use App\Inscription\Application\UseCase\RejeterPaiementUseCase;
+use App\Inscription\Application\UseCase\SupprimerInscriptionUseCase;
 use App\Inscription\Application\UseCase\ValiderPaiementUseCase;
 use App\Inscription\Application\UseCase\ValiderParticipationUseCase;
 use App\Inscription\Domain\Repository\InscriptionRepositoryInterface;
@@ -40,6 +41,18 @@ class AdminInscriptionController extends ApiInterface
     {
         $inscription = $repository->findById($id);
         return $inscription ? $this->responseData($inscription, [], self::GROUPS) : $this->errorResponse('Inscription introuvable.', 404);
+    }
+
+    /** Suppression définitive (inscription, paiements, fichiers, attestation et compte participant). */
+    #[Route('/inscriptions/{id}', name: 'api_admin_inscription_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function supprimer(int $id, SupprimerInscriptionUseCase $useCase): JsonResponse
+    {
+        try {
+            $email = $useCase->execute($id);
+            return $this->setMessage('Inscription de '.$email.' supprimée.')->responseData(null);
+        } catch (\Throwable $e) {
+            return $this->fail($e);
+        }
     }
 
     /** File d'attente de vérification : paiements EN_ATTENTE, les plus anciens d'abord. */
