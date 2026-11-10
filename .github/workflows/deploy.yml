@@ -33,7 +33,9 @@ jobs:
           ENV_LOCAL: ${{ secrets.ENV_LOCAL }}
         run: |
           if [ -z "$ENV_LOCAL" ]; then
-            echo "Secret ENV_LOCAL non défini : on conserve le .env.local déjà présent sur le serveur."
+            echo "Secret ENV_LOCAL non défini : on conserve le .env.local du serveur, mais FRONT_URL est resynchronisé (liens des e-mails)."
+            sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
+              [ -f $TARGET_DIR/.env.local ] && sed -i '/^FRONT_URL=/d' $TARGET_DIR/.env.local && echo 'FRONT_URL=${SCHEME}://forum.instapoint.site' >> $TARGET_DIR/.env.local; true"
             exit 0
           fi
           printf '%s\n' "$ENV_LOCAL" | sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
