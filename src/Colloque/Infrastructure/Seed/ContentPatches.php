@@ -61,6 +61,45 @@ class ContentPatches
             $faits[] = 'Logo '.$item->getRole().' remplacé';
         }
 
+        // 11/11/2026 : organisé par l'ERESP et l'IGT (logo de l'université supprimé) avec leurs responsables ; titres (MC) du PCO.
+        foreach ($colloque->getItemsByType(ColloqueItem::PARTENAIRE) as $item) {
+            if ($item->getRole() === 'UFHB') {
+                if ($item->getImage() !== null) {
+                    $this->em->remove($item->getImage());
+                }
+                $colloque->removeItem($item);
+                $this->em->remove($item);
+                $faits[] = 'Logo UFHB supprimé';
+                continue;
+            }
+            foreach (ColloqueSeeder::ORGANISATEURS_LOGOS as $i => [, $role, $resp]) {
+                if ($item->getRole() === $role && $item->getTitre() === null) {
+                    $item->setTitre($resp)->setOrdre($i + 1);
+                    $faits[] = 'Responsable '.$role.' : '.$resp;
+                }
+            }
+        }
+        $contacts = $colloque->getContacts();
+        if (($contacts['organisateurs'] ?? null) === ['Université Félix Houphouët-Boigny', 'Institut de Géographie Tropicale · ERESP']) {
+            $contacts['organisateurs'] = ColloqueSeeder::ORGANISATEURS;
+            $colloque->setContacts($contacts);
+            $faits[] = 'Organisé par : ERESP et IGT';
+        }
+        $titres = ['Dr KAMAGATE Sanaliou' => 'Dr (MC) KAMAGATE Sanaliou', 'Dr KOUASSI Gilbert' => 'Dr (MC) KOUASSI Gilbert', 'Dr DIABAGATE Abou' => 'Dr (MC) DIABAGATE Abou'];
+        $comite = $colloque->getComite();
+        $change = false;
+        foreach ($comite as &$m) {
+            if (isset($titres[$m['nom'] ?? ''])) {
+                $m['nom'] = $titres[$m['nom']];
+                $change = true;
+            }
+        }
+        unset($m);
+        if ($change) {
+            $colloque->setComite($comite);
+            $faits[] = 'Comité : (MC) ajouté jusqu\'au secrétaire général';
+        }
+
         // « Correction 4 » : avantages remplacés, uniquement s'ils ont encore l'un des contenus initiaux.
         if (in_array($colloque->getAvantages(), [['Déjeuner', 'Diplôme de participation'], ['Attestation de participation']], true)) {
             $colloque->setAvantages(ColloqueSeeder::AVANTAGES);

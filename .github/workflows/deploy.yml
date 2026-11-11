@@ -39,7 +39,10 @@ jobs:
             exit 0
           fi
           printf '%s\n' "$ENV_LOCAL" | sshpass -e ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 -o ConnectionAttempts=3 ${{ secrets.APP_USER }}@${{ secrets.APP_HOST }} "\
-            mkdir -p $TARGET_DIR && cat > $TARGET_DIR/.env.local && \\
+            mkdir -p $TARGET_DIR && \\
+            { [ -f $TARGET_DIR/.env.local ] && grep '^MAILER_' $TARGET_DIR/.env.local > /tmp/.mailer.keep || : > /tmp/.mailer.keep; } && \\
+            cat > $TARGET_DIR/.env.local && \\
+            { for k in MAILER_DSN MAILER_FROM_ADDRESS MAILER_FROM_NAME; do l=\$(grep \"^\$k=\" /tmp/.mailer.keep | tail -1); [ -n \"\$l\" ] && sed -i \"/^\$k=/d\" $TARGET_DIR/.env.local && printf '%s\\n' \"\$l\" >> $TARGET_DIR/.env.local; done; rm -f /tmp/.mailer.keep; true; } && \\
             sed -i '/^FRONT_URL=/d' $TARGET_DIR/.env.local && echo 'FRONT_URL=${SCHEME}://forum.instapoint.site' >> $TARGET_DIR/.env.local && \\
             chmod 600 $TARGET_DIR/.env.local"
           echo "✅ .env.local écrit sur le serveur (permissions 600) ; FRONT_URL = ${SCHEME}://forum.instapoint.site (suit la variable USE_HTTPS)"

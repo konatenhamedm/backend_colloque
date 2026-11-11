@@ -244,7 +244,7 @@ check("comité -> /admin/colloque -> 403 (réservé aux admins)", call("GET", "/
 s, d = call("GET", "/admin/colloque", adm)
 items = d["data"]["items"]
 by = lambda t: [i for i in items if i["type"] == t]
-check("admin : 9 éléments (4 animateurs, 2 signataires, 3 logos)", s == 200 and (len(by("INTERVENANT")), len(by("SIGNATAIRE")), len(by("PARTENAIRE"))) == (4, 2, 3), str((len(items))))
+check("admin : 8 éléments (4 animateurs, 2 signataires, 2 logos ERESP + IGT)", s == 200 and (len(by("INTERVENANT")), len(by("SIGNATAIRE")), len(by("PARTENAIRE"))) == (4, 2, 2), str((len(items))))
 cats = d["data"]["colloque"]["categories"]
 s, d = call("PUT", "/admin/colloque", adm, json_body={"heures": "09h00 – 17h00", "lieu": "Auditorium de test", "cibles": "Étudiants\nChercheurs"})
 check("modification générale (heures, lieu, cibles)", s == 200 and d["data"]["colloque"]["heures"] == "09h00 – 17h00" and d["data"]["colloque"]["cibles"] == ["Étudiants", "Chercheurs"], str(d)[:160])

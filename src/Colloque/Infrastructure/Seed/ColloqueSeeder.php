@@ -15,6 +15,12 @@ use App\Colloque\Domain\Entity\ColloqueItem;
 class ColloqueSeeder
 {
     /** À incrémenter si ce contenu change : l'ancien contenu non modifié par un admin est alors remplacé (si aucune inscription). */
+    public const ORGANISATEURS = ['Équipe de Recherche Espace, Système et Prospective (ERESP)', 'Institut de Géographie Tropicale (IGT)'];
+    /** [nom, sigle (role), responsable] */
+    public const ORGANISATEURS_LOGOS = [
+        ['Équipe de Recherche Espace, Système et Prospective', 'ERESP', 'Prof Gogbe Téré'],
+        ['Institut de Géographie Tropicale', 'IGT', 'Prof Bikpo Céline'],
+    ];
     public const SLOGAN = 'La recherche se découvre, se partage et se construit ensemble !';
     public const AVANTAGES = ['Attestation de participation', 'Comprendre le parcours doctoral', 'Découvrir la recherche scientifique', 'Rencontrer des acteurs du monde scientifique'];
     public const SEED_KEY = 'fjcg-2026-v1';
@@ -45,13 +51,13 @@ class ColloqueSeeder
                     ['nom' => 'Dr KAMAGATE Sanaliou', 'telephone' => '(+225) 07 07 96 31 15', 'email' => 'ksanaliou@yahoo.fr'],
                 ],
                 'beneficiaires' => [], // ancien format (compatibilité avec l'ancien front pendant le déploiement)
-                'organisateurs' => ['Université Félix Houphouët-Boigny', 'Institut de Géographie Tropicale · ERESP'],
+                'organisateurs' => self::ORGANISATEURS,
             ])
             ->setComite([
-                ['role' => 'Président du Comité d\'Organisation', 'nom' => 'Dr KAMAGATE Sanaliou', 'details' => 'Maître de Conférences'],
-                ['role' => '1er Vice-président', 'nom' => 'Dr KOUASSI Gilbert', 'details' => 'Maître de Conférences'],
+                ['role' => 'Président du Comité d\'Organisation', 'nom' => 'Dr (MC) KAMAGATE Sanaliou', 'details' => 'Maître de Conférences'],
+                ['role' => '1er Vice-président', 'nom' => 'Dr (MC) KOUASSI Gilbert', 'details' => 'Maître de Conférences'],
                 ['role' => '2ème Vice-président', 'nom' => 'Dr (MC) BRENOUM Kouakou David', 'details' => 'UFHB, IGT / ERESP, Abidjan'],
-                ['role' => 'Secrétaire général', 'nom' => 'Dr DIABAGATE Abou', 'details' => 'Maître de Conférences'],
+                ['role' => 'Secrétaire général', 'nom' => 'Dr (MC) DIABAGATE Abou', 'details' => 'Maître de Conférences'],
                 ['role' => 'Secrétaire général adjoint', 'nom' => 'Dre (MC) DIHOUEGBEU Déagai Parfaite', 'details' => 'UFHB, IGT / ERESP'],
                 ['role' => 'Trésorière', 'nom' => 'Dr (MC) ADOU Gnangoran Alida Thérèse', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
                 ['role' => 'Trésorière adjointe', 'nom' => 'Dre YAO Affoua Marie Rose', 'details' => 'UFHB / IGT, ERESP, Abidjan'],
@@ -94,8 +100,9 @@ class ColloqueSeeder
         $c->addItem((new ColloqueItem())->setType(ColloqueItem::SIGNATAIRE)->setRole('La Trésorière')->setNom('ADOU Gnangoran Alida Thérèse')
             ->setTitre('Maître de Conférences, UFHB / IGT, ERESP')->setDetails('07 07 65 69 25 / 01 52 01 25 70 · agathe_n77@yahoo.fr')->setOrdre(2));
         // Logos (images : à téléverser)
-        foreach ([['Université Félix Houphouët-Boigny', 'UFHB'], ['Institut de Géographie Tropicale', 'IGT'], ['Équipe de Recherche Espace, Système et Prospective', 'ERESP']] as $i => [$nom, $role]) {
-            $c->addItem((new ColloqueItem())->setType(ColloqueItem::PARTENAIRE)->setNom($nom)->setRole($role)->setOrdre($i + 1));
+        // « Organisé par » : ERESP puis IGT (le logo de l'université n'est plus affiché), avec leurs responsables.
+        foreach (self::ORGANISATEURS_LOGOS as $i => [$nom, $role, $resp]) {
+            $c->addItem((new ColloqueItem())->setType(ColloqueItem::PARTENAIRE)->setNom($nom)->setRole($role)->setTitre($resp)->setOrdre($i + 1));
         }
 
         return $c;

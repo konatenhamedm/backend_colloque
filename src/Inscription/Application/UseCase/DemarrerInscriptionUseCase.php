@@ -40,7 +40,7 @@ class DemarrerInscriptionUseCase
     }
 
     /** Crée un jeton (1 h), purge les anciens, et envoie le lien par e-mail si $envoyer. L'échec d'envoi ne casse pas l'inscription : le lien reste récupérable au back-office. */
-    public function emettre(string $email, bool $envoyer = true): InscriptionToken
+    public function emettre(string $email, bool $envoyer = true, ?string &$erreurEnvoi = null): InscriptionToken
     {
         $this->tokens->purgerExpires();
         $plain = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
@@ -51,6 +51,7 @@ class DemarrerInscriptionUseCase
             try {
                 $this->notifier->lienInscription($email, $plain);
             } catch (\Throwable $e) {
+                $erreurEnvoi = $e->getMessage();
                 $this->logger?->error('Envoi du lien d\'inscription impossible', ['email' => $email, 'erreur' => $e->getMessage()]);
             }
         }

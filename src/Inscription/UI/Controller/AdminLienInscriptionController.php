@@ -46,8 +46,9 @@ class AdminLienInscriptionController extends ApiInterface
         if ($users->findByEmail($email) !== null) {
             return $this->errorResponse('Cette adresse a déjà un compte : le participant peut se connecter.', 422);
         }
-        $token = $useCase->emettre($email, (bool) ($data['envoyer'] ?? false));
-        return $this->setMessage('Lien généré.')->responseData($this->vue($token));
+        $erreur = null;
+        $token = $useCase->emettre($email, (bool) ($data['envoyer'] ?? false), $erreur);
+        return $this->setMessage('Lien généré.')->responseData($this->vue($token) + ['erreurEnvoi' => $erreur]);
     }
 
     private function vue(InscriptionToken $t): array
