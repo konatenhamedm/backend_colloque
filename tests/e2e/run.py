@@ -120,6 +120,16 @@ check("le colloque public expose le prix du repas (2000)", col.get("prixRepas") 
 s, d = call("POST", "/auth/inscription", fields={**f, "token": tok4, "reference": "REPAS1", "repas": "1"}, files={})
 ins = d.get("data", {}).get("inscription", {}) if s == 201 else {}
 check("inscription avec repas -> montant = catégorie + 2000", s == 201 and ins.get("repas") is True and ins["dernierPaiement"]["montant"] == cat["montant"] + 2000, str(d)[:200])
+# Inscription directe (sans lien envoyé par e-mail)
+fd = {k: v for k, v in f.items() if k != "token"}
+s, d = call("POST", "/auth/inscription", fields={**fd, "email": "Direct@Exemple.ci", "reference": "DIR1"}, files={})
+check("inscription directe (e-mail saisi, sans jeton) -> 201, e-mail normalisé", s == 201 and d["data"]["user"]["email"] == "direct@exemple.ci", str(d)[:200])
+s, d = call("POST", "/auth/inscription", fields={**fd, "email": "direct@exemple.ci", "reference": "DIR2"}, files={})
+check("inscription directe : e-mail déjà utilisé -> 409", s == 409, str(d)[:120])
+s, d = call("POST", "/auth/inscription", fields={**fd, "email": "pas-un-email", "reference": "DIR3"}, files={})
+check("inscription directe : e-mail invalide -> 400", s == 400, str(d)[:120])
+s, d = call("POST", "/auth/inscription", fields={**fd, "reference": "DIR4"}, files={})
+check("inscription directe : e-mail absent -> 400", s == 400, str(d)[:120])
 s0, _ = call("POST", "/auth/inscription/demarrer", json_body={"email": "zoe.test@exemple.ci"})
 check("e-mail déjà inscrit -> même réponse 202 (pas d'énumération)", s0 == 202)
 
