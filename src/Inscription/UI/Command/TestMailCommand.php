@@ -19,7 +19,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(name: 'app:mail:test', description: 'Envoie les 5 e-mails modèles (données fictives, rien en base) à une adresse pour vérifier SMTP et templates')]
+#[AsCommand(name: 'app:mail:test', description: 'Envoie les 4 e-mails modèles (données fictives, rien en base) à une adresse pour vérifier SMTP et templates')]
 class TestMailCommand extends Command
 {
     public function __construct(
@@ -51,13 +51,12 @@ class TestMailCommand extends Command
         $ins->addPaiement($paiement);
         $att = (new Attestation())->setInscription($ins)->setNumero('FJCG-TEST-00001');
 
-        $this->notifier->lienInscription($user->getEmail(), 'jeton-de-test-non-valide');
         $this->notifier->inscriptionRecue($ins);
         $this->notifier->paiementValide($ins, $this->recu->generate($paiement));
         $this->notifier->paiementRejete($ins, 'Le montant du reçu ne correspond pas aux frais de participation.');
         $this->notifier->attestationDisponible($ins, $this->attestations->generate($att, 'https://exemple.test/verification/'.$att->getCodeVerification()));
 
-        $io->success('5 e-mails envoyés à '.$user->getEmail().' (les échecs éventuels sont dans var/log/dev.log).');
+        $io->success('4 e-mails envoyés à '.$user->getEmail().' (les échecs éventuels sont dans var/log/dev.log).');
         return Command::SUCCESS;
     }
 }

@@ -3,7 +3,7 @@ framework:
         # Anti-abus du formulaire public (création de comptes + téléversement)
         inscription:
             policy: sliding_window
-            limit: 30
+            limit: 100
             interval: '15 minutes'
         login:
             policy: sliding_window

@@ -1,9 +1,0 @@
-{% extends 'email/base.html.twig' %}
-{% block content %}
-<h1 style="margin:0 0 12px;font-size:22px;color:#1b2a6b;">Finalisez votre inscription</h1>
-<p style="margin:0 0 8px;">Bonjour,</p>
-<p style="margin:0;">Vous avez commencé votre inscription. Cliquez sur le bouton ci-dessous pour la poursuivre. Ce lien est <strong>valable 1 heure</strong> et ne peut être utilisé qu'une seule fois.</p>
-{% include 'email/_button.html.twig' with { url: lien, label: 'Continuer mon inscription' } %}
-<p style="margin:0;font-size:13px;color:#5a6788;">Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :<br><a href="{{ lien }}" style="color:#1b2a6b;word-break:break-all;">{{ lien }}</a></p>
-{% endblock %}
-{% block footer %}<p style="margin:0 0 10px;">Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet e-mail : aucune inscription ne sera créée.</p>{% endblock %}

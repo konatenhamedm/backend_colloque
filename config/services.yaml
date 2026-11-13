@@ -37,8 +37,6 @@ services:
         class: App\Colloque\Infrastructure\Persistence\AxeThematiqueRepository
     App\Inscription\Domain\Repository\InscriptionRepositoryInterface:
         class: App\Inscription\Infrastructure\Persistence\InscriptionRepository
-    App\Inscription\Domain\Repository\InscriptionTokenRepositoryInterface:
-        class: App\Inscription\Infrastructure\Persistence\InscriptionTokenRepository
     App\Inscription\Domain\Repository\PaiementRepositoryInterface:
         class: App\Inscription\Infrastructure\Persistence\PaiementRepository
     App\Travaux\Domain\Repository\CommunicationRepositoryInterface:

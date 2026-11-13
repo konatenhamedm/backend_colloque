@@ -10,7 +10,6 @@ use App\Inscription\Domain\Entity\Paiement;
 use App\Inscription\Domain\Enum\CanalPaiement;
 use App\Inscription\Domain\Enum\TypeParticipation;
 use App\Inscription\Domain\Repository\InscriptionRepositoryInterface;
-use App\Inscription\Domain\Repository\InscriptionTokenRepositoryInterface;
 use App\Inscription\Domain\Repository\PaiementRepositoryInterface;
 use App\Security\Domain\Entity\Utilisateur;
 use App\Security\Domain\Repository\UtilisateurRepositoryInterface;
@@ -19,7 +18,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
-use Symfony\Component\HttpKernel\Exception\GoneHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
@@ -37,7 +35,6 @@ class SoumettreInscriptionUseCase
         private readonly FileStorage $storage,
         private readonly UserPasswordHasherInterface $hasher,
         private readonly InscriptionNotifierInterface $notifier,
-        private readonly InscriptionTokenRepositoryInterface $tokens,
         private readonly EntityManagerInterface $em,
         private readonly ?\Psr\Log\LoggerInterface $logger = null,
     ) {
@@ -46,15 +43,6 @@ class SoumettreInscriptionUseCase
     /** @return array{inscription: Inscription, utilisateur: Utilisateur} */
     public function execute(array $data, ?UploadedFile $justificatif): array
     {
-        // Inscription directe : l'e-mail est saisi dans le formulaire (plus de lien envoyé par e-mail). Un ancien lien à jeton reste accepté.
-        $token = null;
-        if (trim((string) ($data['token'] ?? '')) !== '') {
-            $token = $this->tokens->findByPlainToken((string) $data['token']);
-            if ($token === null || !$token->isUsable()) {
-                throw new GoneHttpException('Ce lien est invalide ou a expiré. Reprenez votre inscription depuis la page d\'inscription.');
-            }
-            $data['email'] = $token->getEmail();
-        }
         $data['email'] = mb_strtolower(trim((string) ($data['email'] ?? '')));
         if (strlen((string) ($data['password'] ?? '')) < 8) {
             throw new BadRequestHttpException('Le mot de passe doit contenir au moins 8 caractères.');
@@ -110,7 +98,6 @@ class SoumettreInscriptionUseCase
 
         $this->users->add($user);
         $this->inscriptions->add($inscription);
-        $token?->markUsed();
         $this->em->flush();
 
         // L'inscription est déjà enregistrée : un échec d'envoi d'e-mail ne doit jamais la faire échouer.

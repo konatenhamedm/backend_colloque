@@ -7,7 +7,6 @@ use App\Inscription\Domain\Entity\Inscription;
 /** Port de notification : l'implémentation (e-mail) vit dans Infrastructure. */
 interface InscriptionNotifierInterface
 {
-    public function lienInscription(string $email, string $token): void;
     public function inscriptionRecue(Inscription $inscription): void;
     /** Prévient l'organisateur (si ADMIN_NOTIFICATION_EMAIL est défini) qu'une inscription attend sa vérification. */
     public function nouvelleInscription(Inscription $inscription): void;

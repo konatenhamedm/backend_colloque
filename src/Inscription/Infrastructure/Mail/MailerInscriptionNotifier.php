@@ -24,17 +24,9 @@ class MailerInscriptionNotifier implements InscriptionNotifierInterface
     ) {
     }
 
-    public function lienInscription(string $email, string $token): void
-    {
-        $lien = rtrim($this->frontUrl, '/').'/inscription?token='.$token;
-        $this->send($email, 'Finalisez votre inscription', 'email/lien_inscription.html.twig', ['lien' => $lien]);
-        // En dev, on garde une trace lisible du lien pour pouvoir tester même si l'envoi échoue.
-        $this->logger->info('[DEV] Lien d\'inscription', ['email' => $email, 'lien' => $lien]);
-    }
-
     public function inscriptionRecue(Inscription $inscription): void
     {
-        $this->send($inscription->getUtilisateur()->getEmail(), 'Votre inscription est enregistrée', 'email/inscription_recue.html.twig', ['inscription' => $inscription], $inscription);
+        $this->send($inscription->getUtilisateur()->getEmail(), 'Félicitations, votre inscription est enregistrée', 'email/inscription_recue.html.twig', ['inscription' => $inscription], $inscription);
     }
 
     public function nouvelleInscription(Inscription $inscription): void
