@@ -4,6 +4,8 @@ namespace App\Inscription\UI\Controller;
 
 use App\Inscription\Application\UseCase\ListInscriptionsUseCase;
 use App\Inscription\Application\UseCase\ListPaiementsEnAttenteUseCase;
+use App\Inscription\Application\UseCase\ListPaiementsValidesUseCase;
+use App\Inscription\Application\UseCase\ModifierNumeroDepotUseCase;
 use App\Inscription\Application\UseCase\RejeterPaiementUseCase;
 use App\Inscription\Application\UseCase\SupprimerInscriptionUseCase;
 use App\Inscription\Application\UseCase\ValiderPaiementUseCase;
@@ -61,6 +63,26 @@ class AdminInscriptionController extends ApiInterface
     {
         $result = $useCase->execute($request->query->getInt('page', 1), $request->query->getInt('limit', 20));
         return $this->responseData($result['data'], $result['meta'], ['common:read', 'paiement:read', 'fichier:read']);
+    }
+
+    /** Paiements validés (les plus récents d'abord) : suivi financier et correction du numéro de dépôt. */
+    #[Route('/paiements/valides', name: 'api_admin_paiements_valides', methods: ['GET'])]
+    public function valides(Request $request, ListPaiementsValidesUseCase $useCase): JsonResponse
+    {
+        $result = $useCase->execute($request->query->getInt('page', 1), $request->query->getInt('limit', 20));
+        return $this->responseData($result['data'], $result['meta'], ['common:read', 'paiement:read', 'fichier:read']);
+    }
+
+    /** Corrige le numéro de dépôt d'un paiement : { "numeroDepot": "07 07 65 69 25" } (vide = non précisé). */
+    #[Route('/paiements/{id}/numero-depot', name: 'api_admin_paiement_numero_depot', requirements: ['id' => '\d+'], methods: ['PATCH'])]
+    public function numeroDepot(int $id, Request $request, ModifierNumeroDepotUseCase $useCase): JsonResponse
+    {
+        try {
+            $p = $useCase->execute($id, isset($this->payload($request)['numeroDepot']) ? (string) $this->payload($request)['numeroDepot'] : null);
+            return $this->setMessage('Numéro de dépôt mis à jour.')->responseData($p, [], ['common:read', 'paiement:read', 'fichier:read']);
+        } catch (\Throwable $e) {
+            return $this->fail($e);
+        }
     }
 
     #[Route('/paiements/{id}/valider', name: 'api_admin_paiement_valider', requirements: ['id' => '\d+'], methods: ['POST'])]

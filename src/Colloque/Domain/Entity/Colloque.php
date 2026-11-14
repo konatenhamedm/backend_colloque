@@ -196,12 +196,7 @@ class Colloque
      */
     public function resoudreNumeroDepot(string $codeCanal, ?string $choisi): ?string
     {
-        $numeros = [];
-        foreach ($this->canauxPaiement as $c) {
-            if (($c['code'] ?? null) === $codeCanal) {
-                $numeros = array_values(array_filter(array_map('strval', $c['numeros'] ?? [])));
-            }
-        }
+        $numeros = $this->numerosCanal($codeCanal);
         $norm = fn (string $n) => preg_replace('/\D+/', '', $n);
         foreach ($numeros as $n) {
             if ($choisi !== null && $norm($choisi) !== '' && $norm($choisi) === $norm($n)) {
@@ -209,6 +204,17 @@ class Colloque
             }
         }
         return count($numeros) === 1 ? $numeros[0] : null;
+    }
+
+    /** @return string[] numéros de dépôt proposés pour un canal */
+    public function numerosCanal(string $codeCanal): array
+    {
+        foreach ($this->canauxPaiement as $c) {
+            if (($c['code'] ?? null) === $codeCanal) {
+                return array_values(array_filter(array_map('strval', $c['numeros'] ?? [])));
+            }
+        }
+        return [];
     }
 
     public function getItemsByType(string $type): array { return array_values($this->items->filter(fn (ColloqueItem $i) => $i->getType() === $type)->toArray()); }

@@ -44,6 +44,19 @@ class PaiementRepository extends ServiceEntityRepository implements PaiementRepo
         return new Paginator($qb->getQuery(), true);
     }
 
+    public function searchValides(int $page, int $limit): Paginator
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->join('p.inscription', 'i')->addSelect('i')
+            ->join('i.utilisateur', 'u')->addSelect('u')
+            ->join('i.categorie', 'c')->addSelect('c')
+            ->leftJoin('p.justificatif', 'f')->addSelect('f')
+            ->where('p.statut = :s')->setParameter('s', StatutPaiement::VALIDE)
+            ->orderBy('p.traiteAt', 'DESC')->addOrderBy('p.id', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)->setMaxResults($limit);
+        return new Paginator($qb->getQuery(), true);
+    }
+
     public function totalsByCanal(): array
     {
         $rows = $this->createQueryBuilder('p')->select('p.canal AS canal, COUNT(p.id) AS total, SUM(p.montant) AS montant')

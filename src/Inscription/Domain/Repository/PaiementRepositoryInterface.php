@@ -11,6 +11,8 @@ interface PaiementRepositoryInterface
     public function findById(int $id): ?Paiement;
     public function existsReference(CanalPaiement $canal, string $reference): bool;
     public function searchEnAttente(int $page, int $limit): Paginator;
+    /** Paiements validés, les plus récents d'abord. */
+    public function searchValides(int $page, int $limit): Paginator;
     /** @return array<int,array{canal:string,total:int,montant:int}> paiements VALIDES regroupés par canal */
     public function totalsByCanal(): array;
     /** @return array<int,array{canal:string,numero:?string,total:int,montant:int}> */
