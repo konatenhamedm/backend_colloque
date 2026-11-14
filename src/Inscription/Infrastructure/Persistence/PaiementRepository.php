@@ -52,6 +52,15 @@ class PaiementRepository extends ServiceEntityRepository implements PaiementRepo
         return array_map(fn ($r) => ['canal' => $r['canal']->value, 'total' => (int) $r['total'], 'montant' => (int) $r['montant']], $rows);
     }
 
+    /** Encaissements validés par canal ET par numéro de dépôt (numéro vide = non précisé). */
+    public function totalsByCanalNumero(): array
+    {
+        $rows = $this->createQueryBuilder('p')->select('p.canal AS canal, p.numeroDepot AS numero, COUNT(p.id) AS total, SUM(p.montant) AS montant')
+            ->where('p.statut = :s')->setParameter('s', StatutPaiement::VALIDE)
+            ->groupBy('p.canal, p.numeroDepot')->orderBy('montant', 'DESC')->getQuery()->getArrayResult();
+        return array_map(fn ($r) => ['canal' => $r['canal']->value, 'numero' => $r['numero'], 'total' => (int) $r['total'], 'montant' => (int) $r['montant']], $rows);
+    }
+
     public function findAllValides(): array
     {
         return $this->createQueryBuilder('p')->join('p.inscription', 'i')->addSelect('i')->join('i.utilisateur', 'u')->addSelect('u')

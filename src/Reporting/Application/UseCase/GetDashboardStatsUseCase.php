@@ -34,6 +34,7 @@ class GetDashboardStatsUseCase
 
         $parCanal = $this->paiements->totalsByCanal();
         $collecte = array_sum(array_column($parCanal, 'montant'));
+        $parCanalNumero = $this->paiements->totalsByCanalNumero();
 
         return [
             'inscrits' => [
@@ -55,6 +56,11 @@ class GetDashboardStatsUseCase
                     'libelle' => CanalPaiement::from($c['canal'])->label(),
                     'part' => $collecte > 0 ? round($c['montant'] / $collecte * 100, 1) : 0.0,
                 ], $parCanal),
+                'parCanalNumero' => array_map(fn (array $c) => [
+                    ...$c,
+                    'libelle' => CanalPaiement::from($c['canal'])->label(),
+                    'part' => $collecte > 0 ? round($c['montant'] / $collecte * 100, 1) : 0.0,
+                ], $parCanalNumero),
             ],
             'parCategorie' => $this->inscriptions->countByCategorie($colloque),
             'inscriptionsParJour' => $this->inscriptions->countByJour($colloque, 30),

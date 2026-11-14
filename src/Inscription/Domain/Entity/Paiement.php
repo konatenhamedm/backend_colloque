@@ -43,6 +43,11 @@ class Paiement
     #[Groups(['paiement:read', 'inscription:read'])]
     private ?string $reference = null;
 
+    /** Numéro Orange Money / Wave sur lequel le participant a déposé (l'événement en propose plusieurs). */
+    #[ORM\Column(length: 30, nullable: true)]
+    #[Groups(['paiement:read', 'inscription:read'])]
+    private ?string $numeroDepot = null;
+
     #[ORM\ManyToOne(cascade: ['persist'])]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['paiement:read', 'inscription:read'])]
@@ -71,6 +76,8 @@ class Paiement
     public function setCanal(CanalPaiement $c): self { $this->canal = $c; return $this; }
     public function getMontant(): int { return $this->montant; }
     public function setMontant(int $m): self { $this->montant = $m; return $this; }
+    public function getNumeroDepot(): ?string { return $this->numeroDepot; }
+    public function setNumeroDepot(?string $n): self { $n = $n === null ? '' : trim($n); $this->numeroDepot = $n === '' ? null : $n; return $this; }
     public function getReference(): ?string { return $this->reference; }
     public function setReference(?string $r): self { $r = $r === null ? '' : mb_strtoupper(trim($r)); $this->reference = $r === '' ? null : $r; return $this; }
     public function getJustificatif(): ?Fichier { return $this->justificatif; }

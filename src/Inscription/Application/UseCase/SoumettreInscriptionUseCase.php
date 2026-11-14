@@ -92,6 +92,7 @@ class SoumettreInscriptionUseCase
 
         $paiement = (new Paiement())
             ->setCanal($canal)->setReference($reference)
+            ->setNumeroDepot($colloque->resoudreNumeroDepot($canal->value, $data['numeroDepot'] ?? null))
             ->setMontant($inscription->getMontantTotal()) // le montant vient de la catégorie (+ repas), pas du client
             ->setJustificatif($justificatif !== null ? $this->storage->storeJustificatif($justificatif) : null);
         $inscription->addPaiement($paiement);

@@ -13,6 +13,8 @@ interface PaiementRepositoryInterface
     public function searchEnAttente(int $page, int $limit): Paginator;
     /** @return array<int,array{canal:string,total:int,montant:int}> paiements VALIDES regroupés par canal */
     public function totalsByCanal(): array;
+    /** @return array<int,array{canal:string,numero:?string,total:int,montant:int}> */
+    public function totalsByCanalNumero(): array;
     /** @return Paiement[] */
     public function findAllValides(): array;
     /** Somme des paiements en attente de vérification (FCFA). */

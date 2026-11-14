@@ -55,20 +55,20 @@ class ExportRapportUseCase
         $rows = [];
         foreach ($this->paiements->findAllValides() as $p) {
             $u = $p->getInscription()->getUtilisateur();
-            $rows[] = [$p->getTraiteAt()?->format('d/m/Y H:i'), $u->getNomComplet(), $p->getInscription()->getCategorie()->getLibelle(), $p->getCanal()->label(), $p->getReference() ?? '', $p->getMontant()];
+            $rows[] = [$p->getTraiteAt()?->format('d/m/Y H:i'), $u->getNomComplet(), $p->getInscription()->getCategorie()->getLibelle(), $p->getCanal()->label(), $p->getNumeroDepot() ?? '', $p->getReference() ?? '', $p->getMontant()];
         }
-        return ['headers' => ['Date de validation', 'Participant', 'Catégorie', 'Canal', 'Référence', 'Montant (FCFA)'], 'rows' => $rows];
+        return ['headers' => ['Date de validation', 'Participant', 'Catégorie', 'Canal', 'N° de dépôt', 'Référence', 'Montant (FCFA)'], 'rows' => $rows];
     }
 
     private function parCanal(): array
     {
         $rows = [];
         $total = 0;
-        foreach ($this->paiements->totalsByCanal() as $c) {
-            $rows[] = [\App\Inscription\Domain\Enum\CanalPaiement::from($c['canal'])->label(), $c['total'], $c['montant']];
+        foreach ($this->paiements->totalsByCanalNumero() as $c) {
+            $rows[] = [\App\Inscription\Domain\Enum\CanalPaiement::from($c['canal'])->label(), $c['numero'] ?? 'Non précisé', $c['total'], $c['montant']];
             $total += $c['montant'];
         }
-        $rows[] = ['TOTAL', array_sum(array_column($rows, 1)), $total];
-        return ['headers' => ['Canal', 'Nb paiements', 'Montant (FCFA)'], 'rows' => $rows];
+        $rows[] = ['TOTAL', '', array_sum(array_column($rows, 2)), $total];
+        return ['headers' => ['Canal', 'N° de dépôt', 'Nb paiements', 'Montant (FCFA)'], 'rows' => $rows];
     }
 }

@@ -190,6 +190,27 @@ class Colloque
     public function addItem(ColloqueItem $i): self { if (!$this->items->contains($i)) { $this->items->add($i); $i->setColloque($this); } return $this; }
     public function removeItem(ColloqueItem $i): self { $this->items->removeElement($i); return $this; }
     /** @return ColloqueItem[] */
+    /**
+     * Numéro de dépôt retenu pour un canal : celui choisi par le participant s'il fait partie des numéros du canal,
+     * ou l'unique numéro du canal ; null si non précisé (facultatif : on ne bloque jamais l'inscription pour ça).
+     */
+    public function resoudreNumeroDepot(string $codeCanal, ?string $choisi): ?string
+    {
+        $numeros = [];
+        foreach ($this->canauxPaiement as $c) {
+            if (($c['code'] ?? null) === $codeCanal) {
+                $numeros = array_values(array_filter(array_map('strval', $c['numeros'] ?? [])));
+            }
+        }
+        $norm = fn (string $n) => preg_replace('/\D+/', '', $n);
+        foreach ($numeros as $n) {
+            if ($choisi !== null && $norm($choisi) !== '' && $norm($choisi) === $norm($n)) {
+                return $n;
+            }
+        }
+        return count($numeros) === 1 ? $numeros[0] : null;
+    }
+
     public function getItemsByType(string $type): array { return array_values($this->items->filter(fn (ColloqueItem $i) => $i->getType() === $type)->toArray()); }
     public function removeCategorie(CategorieParticipant $c): self { $this->categories->removeElement($c); return $this; }
 

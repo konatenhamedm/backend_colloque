@@ -46,6 +46,7 @@ class CorrigerPaiementUseCase
         }
 
         $paiement = (new Paiement())->setCanal($canal)->setReference($reference)
+            ->setNumeroDepot($inscription->getColloque()->resoudreNumeroDepot($canal->value, $data['numeroDepot'] ?? null))
             ->setMontant($inscription->getMontantTotal())
             ->setJustificatif($justificatif !== null ? $this->storage->storeJustificatif($justificatif) : null);
         $inscription->soumettreNouveauPaiement($paiement);
